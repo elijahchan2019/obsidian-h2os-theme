@@ -305,8 +305,10 @@ body.theme-light {
   --callout-color-quote:       var(--h2-gray-500);
   --callout-color-example:     var(--h2-accent);
 
-  /* 代码块（方形语义，content 圆角=0） */
-  --code-background:         var(--h2-gray-50);
+  /* 代码块（方形语义，content 圆角=0）。
+     底色用 Gray 100 而非 Gray 50：方形语义要靠底色本身成立，
+     边框只是辅助轮廓，不能是唯一轮廓——否则底色太弱时整块漂浮。 */
+  --code-background:         var(--h2-gray-100);
   --code-normal:             var(--h2-text);
   --code-comment:            var(--h2-text-faint);
   --code-keyword:            var(--h2-crimson);
@@ -471,11 +473,27 @@ h5, h6 {
    纯灰底 + language label，不加语义色 rail——rail 是 callout 家族
    的识别部件，code block 无语义可标，加了是纯装饰，违反纪律。
    ──────────────────────────────────────────────────────────── */
-.markdown-preview-view pre,
-.markdown-source-view.mod-cm6 .cm-line.HyperMD-codeblock {
+/* 阅读模式：pre 是整体容器，整圈 hairline 没问题 */
+.markdown-preview-view pre {
   background: var(--code-background);
   border-radius: 0;   /* 方形语义 */
   border: 1px solid var(--h2-border);
+}
+
+/* Live Preview：每行是独立 div（CodeMirror 行结构），边框必须拆边——
+   给每行套整圈 border 会让相邻行上下边框叠加，变成"每行一条横线"的表格化效果。
+   解法：所有行只给左右边，上边只给首行，下边只给末行。 */
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-codeblock {
+  background: var(--code-background);
+  border-radius: 0;
+  border-left: 1px solid var(--h2-border);
+  border-right: 1px solid var(--h2-border);
+}
+.markdown-source-view.mod-cm6 .HyperMD-codeblock-begin {
+  border-top: 1px solid var(--h2-border);
+}
+.markdown-source-view.mod-cm6 .HyperMD-codeblock-end {
+  border-bottom: 1px solid var(--h2-border);
 }
 
 .markdown-preview-view pre {

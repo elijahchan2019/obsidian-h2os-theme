@@ -60,7 +60,7 @@ body {
   --h2-line-height-heading: 1.3;
 
   /* Obsidian 读取这些渲染标题；1.25 模数，实测后回填主文档表格 */
-  --inline-title-size: 2rem;     /* 1.25^4 × 16 ≈ 31.4 → 取整 32 */
+  --inline-title-size: 2rem;     /* 1.25^3 × 16 ≈ 31.25 → 取整 32 */
   --h1-size: 2rem;               /* 与 inline title 对齐 */
   --h2-size: 1.6rem;             /* 1.25^2 ≈ 1.56 → 取 1.6 */
   --h3-size: 1.25rem;
@@ -345,5 +345,246 @@ body.theme-light {
 
 
 /* ════════════════════════════════════════════════════════════
-   Phase 0 终止线。以下为 Phase 1+ 占位，验证完裸色板再写。
+   TYPOGRAPHY · Phase 1 基础编辑区
+   正文 → 标题 → 行内代码 → 链接 → 标签
+   纪律：标题层级靠字号字重不靠颜色；间距落在 4px 网格；
+        heading 不参与撞色（红色只留给交互元素）。
+   ════════════════════════════════════════════════════════════ */
+
+/* ── 正文 ────────────────────────────────────────────────────
+   行高用 token --h2-line-height-body (1.7)，中英混排取宽。
+   段落间距用 token --p-spacing (1rem = 16px，落在 4px 网格)。
+   ──────────────────────────────────────────────────────────── */
+body {
+  --line-width-normal: var(--h2-line-height-body);
+}
+
+.markdown-preview-view,
+.markdown-source-view.mod-cm6 .cm-content,
+.markdown-source-view.mod-cm6 .cm-line {
+  font-size: var(--h2-font-size-base);
+  line-height: var(--h2-line-height-body);
+  color: var(--text-normal);
+}
+
+/* 段落间距：阅读模式和 Live Preview 统一 */
+.markdown-preview-view p,
+.markdown-source-view.mod-cm6 .cm-content > p {
+  margin-block-start: var(--p-spacing);
+  margin-block-end: var(--p-spacing);
+}
+
+/* ── 标题 ────────────────────────────────────────────────────
+   字号由 Obsidian --h*-size token 驱动（Phase 0 已定）。
+   字重：H1–H4 用 600（Poppins SemiBold），H5–H6 用 500（Medium）。
+   ⚠️ 已知取舍：思源黑体无 600，CSS 字重匹配会向上落到 Bold 700，
+   中英混排标题中文会略重于英文。Phase 1 验收时实测，不齐再调。
+   字号只写在行级容器，不写在内部 span，避免双层 em 叠乘。
+   ──────────────────────────────────────────────────────────── */
+h1, h2, h3, h4 {
+  font-weight: 600;
+  line-height: var(--h2-line-height-heading);
+}
+h5, h6 {
+  font-weight: 500;
+  line-height: var(--h2-line-height-heading);
+}
+
+/* 阅读模式标题 */
+.markdown-preview-view h1,
+.markdown-preview-view h2,
+.markdown-preview-view h3,
+.markdown-preview-view h4,
+.markdown-preview-view h5,
+.markdown-preview-view h6 {
+  margin-block-start: 1.5rem;   /* 24px，4px 网格 */
+  margin-block-end: 0.5rem;     /* 8px，4px 网格 */
+}
+
+/* Live Preview：字号只写在 .HyperMD-header-N 行级容器，
+   不写在内部 .cm-header-N span，避免双层 em 叠乘。 */
+.markdown-source-view.mod-cm6 .HyperMD-header-1 { font-size: var(--h1-size); font-weight: 600; }
+.markdown-source-view.mod-cm6 .HyperMD-header-2 { font-size: var(--h2-size); font-weight: 600; }
+.markdown-source-view.mod-cm6 .HyperMD-header-3 { font-size: var(--h3-size); font-weight: 600; }
+.markdown-source-view.mod-cm6 .HyperMD-header-4 { font-size: var(--h4-size); font-weight: 600; }
+.markdown-source-view.mod-cm6 .HyperMD-header-5 { font-size: var(--h5-size); font-weight: 500; }
+.markdown-source-view.mod-cm6 .HyperMD-header-6 { font-size: var(--h6-size); font-weight: 500; }
+
+/* H6 标签式：全大写 + 宽字距 + muted，形态与 H5 拉开，遮色仍可分辨。
+   uppercase 只影响拉丁字符，中文不受干扰；中文 H6 靠宽字距 + 小字号区分。
+   muted 降级为辅助手段，主要层级靠形态成立。宽字距数值实测后定稿。 */
+.markdown-preview-view h6,
+.markdown-source-view.mod-cm6 .HyperMD-header-6 {
+  color: var(--h2-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* inline title：与 H1 对齐，承担文档标题角色（即便用户关掉也保留样式） */
+.inline-title {
+  font-size: var(--inline-title-size);
+  font-weight: 600;
+  line-height: var(--h2-line-height-heading);
+  color: var(--h2-text);
+  margin-bottom: 1rem;   /* 16px，4px 网格 */
+}
+
+/* ── 列表 ────────────────────────────────────────────────────
+   列表项间距用 token --list-spacing (0.5rem = 8px，4px 网格)。
+   单项内换行行距沿用正文行高，不单独设。
+   ──────────────────────────────────────────────────────────── */
+.markdown-preview-view ul,
+.markdown-preview-view ol,
+.markdown-source-view.mod-cm6 .HyperMD-list-line {
+  padding-inline-start: 1.5rem;   /* 24px，4px 网格 */
+}
+
+/* 有序/无序列表项之间的间距 */
+.markdown-preview-view li {
+  margin-block-start: var(--list-spacing);
+  margin-block-end: var(--list-spacing);
+}
+.markdown-preview-view li:first-child { margin-block-start: 0; }
+.markdown-preview-view li:last-child  { margin-block-end: 0; }
+
+/* ── 行内代码 ────────────────────────────────────────────────
+   方形语义（圆角小，--radius-s = 4px）。轻 tint 背景，不抢正文。
+   ──────────────────────────────────────────────────────────── */
+.markdown-preview-view code,
+.markdown-source-view.mod-cm6 span.cm-inline-code {
+  background: var(--code-background);
+  color: var(--h2-text);
+  border-radius: var(--radius-s);
+  padding: 0.125rem 0.25rem;   /* 2px 4px —— 4px 网格上取最近邻 */
+  font-size: 0.875em;          /* 相对正文缩小一档 */
+  font-family: var(--font-monospace-theme);
+}
+
+/* Live Preview inline code：Obsidian 用 .cm-inline-code 包裹 */
+.markdown-source-view.mod-cm6 .cm-inline-code {
+  background: var(--code-background);
+  border-radius: var(--radius-s);
+}
+
+/* ── 代码块（code block）──────────────────────────────────────
+   方形语义：border-radius: 0（几何语法纪律）。
+   纯灰底 + language label，不加语义色 rail——rail 是 callout 家族
+   的识别部件，code block 无语义可标，加了是纯装饰，违反纪律。
+   ──────────────────────────────────────────────────────────── */
+.markdown-preview-view pre,
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-codeblock {
+  background: var(--code-background);
+  border-radius: 0;   /* 方形语义 */
+  border: 1px solid var(--h2-border);
+}
+
+.markdown-preview-view pre {
+  padding: 1rem;   /* 16px，4px 网格 */
+  margin-block-start: 1rem;
+  margin-block-end: 1rem;
+}
+
+.markdown-preview-view pre code,
+.markdown-source-view.mod-cm6 .HyperMD-codeblock {
+  font-family: var(--font-monospace-theme);
+  font-size: 0.875rem;   /* 14px，4px 网格 */
+  line-height: 1.6;
+  color: var(--code-normal);
+}
+
+/* code block language label：保留 Obsidian 原生，只调色到 muted */
+.markdown-preview-view .code-block-flair,
+.markdown-source-view.mod-cm6 .code-block-flair {
+  color: var(--h2-text-faint);
+  font-size: 0.75rem;   /* 12px，4px 网格 */
+  font-family: var(--font-interface-theme);
+}
+
+/* ── 链接 ────────────────────────────────────────────────────
+   正文链接默认继承文字色 + 下划线，hover 切到降饱和红。
+   红色只在 hover 瞬态出现，不泛滥（红色纪律）。
+   未解析链接用 faint，视觉上提示"还没建"。
+   ──────────────────────────────────────────────────────────── */
+.markdown-preview-view a,
+.markdown-source-view.mod-cm6 .cm-link,
+.markdown-source-view.mod-cm6 .cm-url {
+  color: var(--link-color);
+  text-decoration: var(--link-decoration);
+  text-decoration-color: var(--link-decoration-color);
+  transition: var(--h2-transition-color), text-decoration-color var(--h2-duration-fast) var(--h2-ease);
+}
+
+.markdown-preview-view a:hover,
+.markdown-source-view.mod-cm6 .cm-link:hover,
+.markdown-source-view.mod-cm6 .cm-url:hover {
+  color: var(--link-color-hover);
+  text-decoration-color: var(--link-decoration-color-hover);
+}
+
+/* 外部链接：同内部链接处理，hover 切红 */
+.markdown-preview-view .external-link,
+.markdown-source-view.mod-cm6 .cm-url {
+  color: var(--link-external-color);
+  text-decoration: var(--link-external-decoration);
+}
+
+/* 未解析链接：faint 色 + 虚线下划线，提示"还没建" */
+.markdown-preview-view a.is-unresolved,
+.markdown-source-view.mod-cm6 span.cm-hmd-internal-link.is-unresolved {
+  color: var(--link-unresolved-color);
+  text-decoration: var(--link-unresolved-decoration);
+  text-decoration-color: var(--link-unresolved-decoration-color);
+}
+
+/* ── 标签（tag）───────────────────────────────────────────────
+   圆角胶囊（圆形语义，--radius-s = 4px，胶囊感靠 padding 撑）。
+   轻 tint 灰底，不抢戏。hover 加深一档。
+   ──────────────────────────────────────────────────────────── */
+.markdown-preview-view a.tag,
+.markdown-source-view.mod-cm6 .cm-hashtag {
+  background: var(--tag-background);
+  color: var(--tag-color);
+  border-radius: var(--tag-radius);
+  padding: 0.125rem 0.5rem;   /* 2px 8px —— 4px 网格 */
+  font-size: 0.875em;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: var(--h2-transition-color);
+}
+
+.markdown-preview-view a.tag:hover,
+.markdown-source-view.mod-cm6 .cm-hashtag:hover {
+  background: var(--tag-background-hover);
+  color: var(--tag-color-hover);
+  border-color: var(--h2-border);
+}
+
+/* Live Preview：Obsidian 把 hashtag 拆成 begin/end/middle，需统一处理 */
+.markdown-source-view.mod-cm6 .cm-hashtag-begin {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  padding-left: 0.5rem;
+  padding-right: 0;
+}
+.markdown-source-view.mod-cm6 .cm-hashtag-end {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  padding-left: 0;
+  padding-right: 0.5rem;
+}
+.markdown-source-view.mod-cm6 .cm-hashtag-begin,
+.markdown-source-view.mod-cm6 .cm-hashtag-middle,
+.markdown-source-view.mod-cm6 .cm-hashtag-end {
+  background: var(--tag-background);
+  color: var(--tag-color);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   Phase 1 终止线。以下为 Phase 2+ 占位，验收完基础编辑区再写。
+   Phase 1 验收标准（主文档）：
+   - hairline 均 1px 且同色
+   - 间距落在 4px 网格
+   - 标题层级仅靠字号字重可分辨（遮住颜色仍成立）
    ════════════════════════════════════════════════════════════ */

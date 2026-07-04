@@ -600,9 +600,187 @@ h5, h6 {
 
 
 /* ════════════════════════════════════════════════════════════
-   Phase 1 终止线。以下为 Phase 2+ 占位，验收完基础编辑区再写。
-   Phase 1 验收标准（主文档）：
-   - hairline 均 1px 且同色
-   - 间距落在 4px 网格
-   - 标题层级仅靠字号字重可分辨（遮住颜色仍成立）
+   SEMANTIC BLOCKS · Phase 2 语义块
+   table → checkbox → blockquote → callout
+   纪律：方形元素靠闭合矩形轮廓成立；圆元素柔角；
+        红色只给交互/语义强调；hairline 均 1px 同色。
+   Phase 2 验收（主文档）：辨识度测试——遮氢视窗、和 Minimal
+   并排、3 秒认不出即返工高频元素。
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Table（方形：横线 + 外圈 hairline + 无竖线 + 0 圆角）─────────
+   不做纯三线表——三线表是 Folio v1.3.0 招牌，三作各占一个形态；
+   更根本是几何语义："方"要成立得有闭合矩形轮廓，只剩横线读不出"方"。
+   表头分隔线 + 外圈 hairline + 无竖线 + 0 圆角。
+   ──────────────────────────────────────────────────────────── */
+.markdown-preview-view table,
+.markdown-source-view.mod-cm6 .cm-table-widget table {
+  border-collapse: collapse;
+  border-radius: 0;            /* 方形语义 */
+  border: 1px solid var(--h2-border);   /* 外圈闭合轮廓 = "方" */
+  background: var(--h2-bg);
+  font-size: 0.9375rem;        /* 15px，4px 网格 —— 表格紧凑一档 */
+  line-height: 1.5;
+}
+
+/* 单元格：无内框（关掉 Obsidian 默认竖线/横线），padding 落 4px 网格 */
+.markdown-preview-view table td,
+.markdown-preview-view table th,
+.markdown-source-view.mod-cm6 .cm-table-widget table td,
+.markdown-source-view.mod-cm6 .cm-table-widget table th {
+  border: 0;                   /* 关掉所有内框，由主题显式画 hairline */
+  padding: 0.5rem 0.75rem;     /* 8px 12px，4px 网格 */
+  text-align: left;
+}
+
+/* 表头：加粗 + 底色 + 底部 hairline 分隔 */
+.markdown-preview-view table th,
+.markdown-source-view.mod-cm6 .cm-table-widget table th {
+  font-weight: 600;
+  background: var(--table-header-background);
+  border-bottom: 1px solid var(--h2-border);   /* 表头分隔 hairline */
+}
+
+/* 行间横线：极轻，只在 hover 时不显示，避免斑马感 */
+.markdown-preview-view table tbody tr,
+.markdown-source-view.mod-cm6 .cm-table-widget table tbody tr {
+  border-top: 1px solid var(--h2-border);
+}
+
+/* ── Checkbox（圆形：未完成/完成两态，选中红填充）──────────────
+   Phase 2 只做 [ ] / [x]。扩展状态色彩纪律已在 Decisions 锁死：
+   无论何时做，只允许灰阶 + 已有的红，不引入新色相。
+   ──────────────────────────────────────────────────────────── */
+.markdown-preview-view input[type=checkbox] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  border-radius: var(--checkbox-radius);   /* 圆形语义 */
+  border: var(--checkbox-border-width) solid var(--checkbox-border-color);
+  background: var(--h2-bg);
+  cursor: pointer;
+  transition: var(--h2-transition-color);
+  position: relative;
+  vertical-align: middle;
+  margin-right: 0.5rem;   /* 8px，4px 网格 —— 与文字间距 */
+}
+
+.markdown-preview-view input[type=checkbox]:hover {
+  border-color: var(--checkbox-border-color-hover);
+}
+
+/* 选中态：红填充 + 白色勾选 */
+.markdown-preview-view input[type=checkbox]:checked {
+  background: var(--checkbox-color);
+  border-color: var(--checkbox-color);
+}
+
+.markdown-preview-view input[type=checkbox]:checked::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;     /* 半格允许 */
+  height: 8px;
+  border: solid var(--checkbox-marker-color);
+  border-width: 0 2px 2px 0;   /* 半格允许 */
+  transform: translate(-50%, -60%) rotate(45deg);
+}
+
+/* 完成态任务文字：faint（不删除线，保留可读性） */
+.markdown-preview-view ul > li.task-list-item.is-checked,
+.markdown-preview-view ol > li.task-list-item.is-checked {
+  color: var(--h2-text-faint);
+}
+
+/* ── Blockquote（实线 3px Gray 300 rail，无装饰点列）────────────
+   方点列 rail 毙掉——点列不比实线多传达信息，纯增噪，且多段引用对齐是无底洞。
+   ⚠️ 3px 属于 rail 部件，不是 hairline（1px）体系。Phase 1 那条
+   "hairline 均 1px"验收标准不适用于此——rail 是结构性强调，独立部件类。
+   ──────────────────────────────────────────────────────────── */
+.markdown-preview-view blockquote,
+.markdown-source-view.mod-cm6 .HyperMD-quote {
+  border-left: var(--blockquote-border-thickness) solid var(--blockquote-border-color);
+  background: transparent;
+  color: var(--h2-text-muted);
+  font-style: normal;          /* 不斜体，保持现代克制 */
+  padding-left: 1rem;          /* 16px，4px 网格 */
+  padding-right: 1rem;
+  margin-block-start: 1rem;
+  margin-block-end: 1rem;
+}
+
+/* Live Preview 引用块行：只给左 rail，不要每行独立背景 */
+.markdown-source-view.mod-cm6 .HyperMD-quote {
+  background: transparent;
+}
+
+/* ── Callout（方形主体 + 左上角三角折角签名 + 语义色 rail）──────
+   折角用 .callout::before 伪元素 clip-path 画三角，绝不 clip 容器
+   （callout 常嵌代码块/表格，clip 容器会出渲染事故）。
+   签名三角放左上角，和 title 右侧折叠箭头分居两端不打架。
+   语义色集中在 title / icon / 左 rail / 折角，主体保持低饱和填充。
+   ⚠️ 三角的出场点：氢视窗 + 折叠标记 + callout 折角（三处，几何语法表已更新）。
+   ──────────────────────────────────────────────────────────── */
+.callout {
+  --callout-color: var(--h2-gray-300);   /* 默认中性，被 Obsidian 按 type 覆盖 */
+  background: color-mix(in srgb, var(--callout-color) 6%, var(--h2-bg));
+  border: 1px solid var(--h2-border);
+  border-radius: 0;                       /* 方形语义 */
+  border-left: 3px solid var(--callout-color);   /* 语义色左 rail，3px 同 blockquote 部件类 */
+  padding: 0.75rem 1rem;                  /* 12px 16px，4px 网格 */
+  margin-block-start: 1rem;
+  margin-block-end: 1rem;
+  position: relative;                     /* 给 ::before 折角定位 */
+  overflow: visible;                      /* 折角伪元素允许溢出到容器外角 */
+}
+
+/* 左上角三角折角签名：用伪元素 clip-path 画，不 clip 容器 */
+.callout::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;     /* 4px 网格 */
+  height: 16px;
+  background: var(--callout-color);
+  clip-path: polygon(0 0, 100% 0, 0 100%);   /* 左上直角三角形 */
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+/* Callout title：语义色集中区 */
+.callout .callout-title {
+  color: var(--callout-color);
+  font-weight: 600;
+  font-size: 0.9375rem;   /* 15px，4px 网格 */
+  padding: 0;
+  gap: 0.5rem;            /* 8px，4px 网格 —— icon 与标题间距 */
+}
+
+/* 折叠箭头：Obsidian 原生三角，title 右侧——这是"折叠标记"的合法出场 */
+.callout .callout-fold.is-collapsed .callout-fold,
+.callout .callout-fold {
+  color: var(--callout-color);
+  transition: transform var(--h2-duration-base) var(--h2-ease);
+}
+
+/* Callout 内容：继承正文色，不跟随 callout 语义色 */
+.callout .callout-content {
+  color: var(--text-normal);
+  margin-top: 0.5rem;     /* 8px，4px 网格 —— title 与内容间距 */
+}
+
+.callout .callout-content > :first-child { margin-top: 0; }
+.callout .callout-content > :last-child  { margin-bottom: 0; }
+
+/* Callout icon：跟随语义色 */
+.callout .callout-icon svg {
+  color: var(--callout-color);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   Phase 2 终止线。辨识度测试通过后进 Phase 3。
    ════════════════════════════════════════════════════════════ */

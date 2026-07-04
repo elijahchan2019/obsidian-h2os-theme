@@ -175,7 +175,9 @@ body.theme-light {
   --background-secondary-alt:       var(--h2-gray-200);
   --background-modifier-border:     var(--h2-border);
   --background-modifier-border-hover: var(--h2-border-strong);
-  --background-modifier-border-focus: var(--h2-accent);
+  /* focus 圈：鼠标点击后 focus 态在 nav item / 表单上常驻，
+     红圈违反"红不做大面积持续态"纪律，退灰阶（Gray 400，可见但不响） */
+  --background-modifier-border-focus: var(--h2-gray-400);
   --background-modifier-form-field: var(--h2-white);
   --background-modifier-form-field-highlighted: var(--h2-gray-50);
   --background-modifier-success:    rgba(107, 155, 107, 0.12);   /* sage tint */
@@ -982,46 +984,29 @@ h5, h6 {
 }
 
 /* active tab：顶部 2px 红线 + 白底。
-   用 ::before 伪元素画顶部线，避免动 Obsidian tab 的 box 结构。 */
+   ⚠️ 不用 ::before/::after 画线——Obsidian 默认主题自己占用了
+   .workspace-tab-header 的伪元素画 active tab 圆角曲线，抢伪元素
+   必被 app 层规则覆盖（Phase 3 踩坑实录）。
+   改画在 .workspace-tab-header-inner 的 inset box-shadow 上：
+   不碰伪元素、不受容器 overflow 裁切、无 z-index 问题。 */
 .workspace-tab-header.is-active {
   color: var(--h2-text);
   background: var(--h2-bg);
 }
 
-.workspace-tab-header.is-active::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--h2-accent);   /* Red 500，红色纪律的合法 active 用途 */
-}
-
-/* pinned tab：用灰阶小圆点替代关闭按钮（圆 = 状态点，几何语法归属）。
-   pinned 是"属性"不是"active 状态"，不用红。 */
-.workspace-tab-header.is-active.workspace-tab-header-item {
-  position: relative;   /* 给 ::before 顶部线定位 */
-}
-
-.workspace-tab-header {
-  position: relative;   /* 统一给所有 tab 定位，避免 is-active 单独设 */
-  overflow: visible;    /* 防止顶部红线被容器裁切 */
-}
-
-/* active tab 顶部红线提到最上层，避免被 tab 内部元素盖住 */
-.workspace-tab-header.is-active::before {
-  z-index: 2;
+.workspace-tab-header.is-active .workspace-tab-header-inner {
+  box-shadow: inset 0 2px 0 0 var(--h2-accent);   /* Red 500，active 状态的合法红 */
 }
 
 /* Pin 图标：pinned 是"属性"不是"active 状态"，强制灰阶，不吃 accent。
-   Obsidian 原生 pin 图标会跟随 --icon-color-active（红），这里显式压灰。 */
-.workspace-tab-header.is-pinned .svg-icon,
-.workspace-tab-header:has(.pin-icon) .svg-icon {
+   ⚠️ Obsidian DOM 里不存在 .is-pinned / .pin-icon——pinned 状态的
+   真实结构是 .workspace-tab-header-status-icon.mod-pinned
+   （Phase 3 踩坑实录：选择器凭空猜、没实测，图标一直吃红不掉色）。 */
+.workspace-tab-header .workspace-tab-header-status-icon.mod-pinned,
+.workspace-tab-header-status-container .workspace-tab-header-status-icon {
   color: var(--h2-text-faint);
 }
-.workspace-tab-header.is-pinned:hover .svg-icon,
-.workspace-tab-header:has(.pin-icon):hover .svg-icon {
+.workspace-tab-header:hover .workspace-tab-header-status-icon.mod-pinned {
   color: var(--h2-text-muted);
 }
 

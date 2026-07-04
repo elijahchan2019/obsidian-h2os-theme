@@ -1,0 +1,202 @@
+# AGENTS.md — H2 OS
+
+Obsidian theme. Single-file CSS, no build step. Aesthetic: **H2OS 现代化几何美学**
+— 白底、降饱和一加红点缀、圆/三角/方几何语法、氢视窗签名。基调是"生活化、克制、
+有辨识度"，2026 年精度重做的执行层，不是 2015 年 MD 旧皮肤。
+
+完整设计文档：`/Users/elijah-air/Obsidian/Uranus/1 Projects/H2 OS/H2 OS 主题介绍.md`。
+与本文件冲突时以主文档为准。
+
+---
+
+## 纪律（必须遵守）
+
+### 一、设计纪律（差异化核心，不可妥协）
+
+这几条是主题的灵魂，写代码时每次都要回看。任一失守，整个体系就退化成普通极简主题。
+
+1. **几何语法不可妥协。**
+   - 圆 = 默认 / 中性 / 可交互（checkbox、toggle、tag、状态点、active rail）
+   - 方 = 结构性内容（code block、table、inline code、callout 主体）
+   - 三角 = 签名（只在氢视窗 + 折叠标记两处出现，不滥用）
+   - 砍范围时优先级：**几何语法 > 红色 > 氢视窗**。红色可降级、氢视窗可延期，几何归属不能乱给。
+
+2. **每个嵌套选择器显式写 `&`。**
+   - `& .callout-title` ✓，裸 `.callout-title` ✗。
+   - CSS Nesting 失败是静默的，整条规则丢弃不报错。显式 `&` 把兼容线压到 Chromium 112 / Safari 16.5。
+
+3. **间距必须落在 4px 网格**（`--h2-space-unit` 的倍数）。
+   - 禁止 13px、11px、7px 这类孤儿值。
+   - 这是"现代 vs 旧"的信号，不是洁癖。直角路线对执行精度零容忍。
+
+4. **现代化优先于还原。**
+   - H2OS 已停更。遇到"原版如此"与"今天更好"冲突，选后者。
+   - 但前 3 条纪律不受此影响——纪律保留，执行层现代化。
+
+5. **日常辨识度 > 氢视窗。**
+   - Phase 1–2 的高频元素（checkbox 圆、callout 三角折角、table hairline）是门面。
+   - 氢视窗是彩蛋不是门面。辨识度测试：遮住氢视窗，和 Minimal 并排，3 秒认不出就返工高频元素。
+
+### 二、代码纪律
+
+1. **只改 `theme.css`，且只在本目录（`H2 OS`）。** 这是唯一的 `main` 分支工作区。
+   - **单分支架构**：所有开发在 main 上，无 dev 分支。
+   - 发布流程是 `bump version + commit + tag + push`，由 GitHub Action 自动发 release。
+2. **改前先读。** 定位区段（见下"theme.css 区段地图"）再动手。
+3. **最小改动。** 不重构、不加装饰注释、不"顺手优化"未要求的部分。
+4. **改完即验**（见下"可视化验证回路"）。纯 CSS 必须肉眼确认。
+5. **仅亮色模式**：`theme.css` 只写 `body.theme-light`，**不写** `body.theme-dark`。用户强行切暗色看 Obsidian 原生兜底，主题不干预。
+6. Obsidian 约定：**优先用官方变量**（`--toggle-*`、`--checkbox-*`、`--tab-*`、`--radius-*`）；自造变量统一 `--h2-*` 前缀，分 primitive / semantic / component 三层。
+7. **阴影统一走 token 出口**：组件只 `box-shadow: var(--h2-shadow-2)`，不内联散值。显脏可清空 token 全局退回。
+8. **过渡动画限定具体属性**（`color` / `background-color` / `border-color` / `opacity` / `transform`），不用 `transition: all`，不动 layout 属性。用 `--h2-duration-*` token，不用魔法时长。
+9. `:has()` 不写到 `body` / `.workspace` 级别（沿用前两作教训，避免 Canvas 白屏）。
+10. 设置页强制回退系统字体（沿用前两作教训，避免 Geometric Sans metrics 破坏原生布局）。
+11. **manifest name 永远是 `H2 OS`**。Obsidian 审核读 tag 关联 commit 的 manifest，name 不符会被拒。
+
+---
+
+## 可视化验证回路
+
+DEV_VAULT 通过 symlink 把本主题挂进 `../DEV_VAULT/.obsidian/themes/H2 OS`。
+改完 `theme.css` 后：
+
+1. 在 `../DEV_VAULT/.obsidian/appearance.json` 把 `cssTheme` 切到 `H2 OS`，然后 reload（`Cmd+R`）或外观设置切换主题。
+2. 用测试文档对照（待建：表格 / callout / checkbox / 几何语法测试.md）。
+3. 桌面截图比对（Electron，用系统截图）。
+4. 验收时按主文档 Phase 1/2 验收标准检查（hairline 一致性、4px 网格、遮色层级、辨识度测试）。
+
+---
+
+## 调试方法论（改 CSS bug 前先读）
+
+沿用 Folio AGENTS.md 的方法论，核心要点：
+
+### 1. 先给 bug 分类
+
+- **确定性修复**：成因能从 CSS 直接看出来（某属性值不对）→ 选择器写对 + 特异性够就一次生效。
+- **渲染态修复**：成因在 DOM 布局 / 层叠 / 裁剪（被裁 / 被盖 / 位置错位）→ **必须先用 devtools 量真实渲染，禁止无数据连改多版。**
+
+### 2. 症状在 X 元素上 ≠ 病根在 X 元素上
+
+被裁 / 被盖类症状，病根十有八九在祖先容器。用 devtools 量祖先链的 `getBoundingClientRect()` + `getComputedStyle().overflow`，找哪条边重合 + overflow 非 visible 的祖先。
+
+### 3. 一版一验，不累计未验证改动
+
+纯 CSS 看不到渲染就是盲改。用户说"没生效"时不要猜——要么要截图 / computed style，要么直说需要更多信息。
+
+### 4. 覆盖官方规则：特异性 + 顺序双保险
+
+压不过 Obsidian 官方规则就上 `!important`，并把规则放在被覆盖规则之后。本主题在"覆盖官方长选择器"场景本就用 `!important`。
+
+---
+
+## theme.css 区段地图
+
+行号近似，大改后会漂移。重新生成大节标题：
+`awk '/════════/{getline t; if(t!~/════/) print NR": "t}' theme.css`
+
+| 行号 | 区段 |
+|------|------|
+| 1    | **HEADER**：文件头注释（字体、色彩、几何语法一句话） |
+| —    | **TOKENS**：primitive 色阶 → semantic 别名 → 圆角 → 排版节奏 → 字体栈 → elevation 阴影 → 动效 |
+| —    | 仅 `body.theme-light`：亮色色板（唯一模式） |
+| —    | **TYPOGRAPHY**（Phase 1）：标题 → 正文 → 链接 → 引用 → 代码 → 语法高亮 → 列表 → 分隔线 → 标签 → 复选框 |
+| —    | **SEMANTIC BLOCKS**（Phase 2）：callout（三角折角）→ table → blockquote → checkbox |
+| —    | **UI CHROME**（Phase 3）：标签栏 → 文件树 → 设置页 → 状态栏 |
+| —    | **SIGNATURE**（Phase 4）：氢视窗（空标签页几何构图）→ 区域撞色 |
+| —    | **FINISH**（Phase 5）：移动端 → 打印 → 收尾 |
+
+---
+
+## 视觉品味（写/审样式时主动规避 AI 设计 tells）
+
+沿用 Folio AGENTS.md，H2 OS 适配版：
+
+- **不用纯黑/纯白做大面积。** 用 Gray 900 `#18181B`、Gray 50 `#FAFAFA` 这类带微调的中性色（主文档色板已如此）。
+- **强调色克制：降饱和一加红，且只做点缀。** 禁 "AI 紫 / 霓虹蓝" 发光渐变。普通链接、heading、正文一律灰阶。
+- **层级靠字重 + 字号，不靠颜色。** Heading 不参与撞色（红色只留给交互元素）。
+- **阴影要么不用，要么极轻**（`--h2-shadow-*` token 已压到最重 `0 8px 24px rgba(0,0,0,0.08)`）。显脏就清 token 退回。
+- **动画只动 transform 和 opacity**，绝不动 layout 属性（重排掉帧）。
+- **色板走 token，别在组件里散写魔法色值。** 改色只动 `--h2-*`，Obsidian 原生变量层自动跟。
+- **间距落在 4px 网格**，禁止孤儿值。这是现代感的来源。
+
+---
+
+## 提交前
+
+- `manifest.json` 的 `version` 是否需要 bump。
+- 是否改到无关区段。
+- hairline 一致性、4px 网格、字重层级是否失守（直角路线零容忍）。
+- **如果要发版**：bump version 后打 tag（无 v 前缀，== version）并 `git push origin main --tags`，workflow 自动接管（见下）。
+
+> ⚠️ **别被 `versions.json` 误导。** 主题（theme）根本不读它——那是插件概念。留着无害，但**不要**把"同步 versions.json"当成发版必做项。
+
+---
+
+## 🚨 红线：发版必须合规，否则会被踢出主题市场索引
+
+> 这条是 Folio 用被 de-index 的代价换来的教训。H2 OS 从第一个 release 开始就要守。
+
+**这是运营铁律，比任何代码改动都重要：**
+
+- 主题进了官方索引（`community-css-themes.json`）后，每次发版合规就能近乎实时跟进。
+- **一旦发出一个不合规 release，会被官方直接剔除索引**，app 内立刻搜不到，只能等周期性扫描重新收录。
+- 所以：**宁可慢，不可错。**
+
+**"合规" = 每次发版都满足：**
+1. release 的 tag **精确等于** manifest 的 `version`，**绝不带 `v` 前缀**。
+2. tag 指向的 commit 的 manifest `name` 必须是 `"H2 OS"`、必填字段齐。
+3. release 挂全资产（至少 `theme.css` + `manifest.json`）。
+4. release 标为 **Latest**、非 draft。
+5. `theme.css` 不引用外部网络资源 / 远程字体（审核硬性要求）。
+
+**发完 30 秒强制自检（缺一不可）：**
+```bash
+gh api repos/elijahchan2019/obsidian-h2os-theme/releases/latest --jq '.tag_name'  # == manifest version，无 v
+gh release view <版本> --json assets --jq '.assets[].name'                          # theme.css / manifest.json 在
+gh api repos/elijahchan2019/obsidian-h2os-theme/releases --jq '.[]|select(.tag_name=="<版本>")|.draft'  # 必须 false
+```
+> 坑：`gh release create` 传大图可能客户端超时，把 release 卡在 draft 态。若自检发现 `draft=true`，用 `gh release edit <版本> --draft=false --latest` 转正。
+
+---
+
+## 发版流程（tag 触发，单分支，GitHub Action 自动发 release）
+
+**单分支架构**：所有开发在 main 上。发版由 `.github/workflows/release.yml` 自动化——校验合规、打包白名单资产、发 release、自检。红线全部作为显式校验步骤硬编码——任一不符直接 fail，发不出不合规的 release。
+
+### 日常发版（你的全部操作）
+
+```bash
+# 在 main 上：
+# 1. 改 theme.css
+# 2. bump manifest.json 的 version
+# 3. commit + 打 tag（tag 必须无 v 前缀，必须 == version）+ 一条命令推送：
+git add -A
+git commit -m "vX.Y.Z: <改动摘要>"
+git tag X.Y.Z
+git push origin main --tags
+# 完成。workflow 接管，约 1 分钟后 release 上线。
+```
+
+### workflow 做了什么（无需你管，但要知道）
+
+1. **校验红线**：tag 无 `v`、tag == manifest version、manifest name == "H2 OS"、theme.css 无外部资源、必备文件齐全。任一不过 → fail。
+2. **建 release**：`--latest`，非 draft，挂白名单资产（theme.css / manifest.json / README×2 / 截图）。开发文件（AGENTS.md / .github / .opencode）留在仓库但不进资产。
+3. **自检**：latest tag == 推送 tag、theme.css + manifest.json 在、draft=false。任一不符 → fail。
+
+### 仍需人工把关的（workflow 管不到的）
+
+- **release notes 内容**：workflow 从 commit 历史生成。要精心写 changelog，在 commit message body 写清楚。
+- **视觉验证**：workflow 不看截图，发版前必须肉眼验过。
+- **Obsidian 市场确认**：发版成功后，回 Obsidian 点"检查更新"确认不报错。
+
+### 手动发版（仅当 workflow 故障时的应急）
+
+正常情况下**永远不要**手动发版。仅当 workflow 本身坏了：
+
+```bash
+# 应急流程（在 main 上）：
+# 1. 确保 manifest version 已 bump、name 是 H2 OS
+# 2. gh release create <version> --latest --title <version> theme.css manifest.json ...
+# 3. 立刻修 workflow，避免下次又得手动
+```

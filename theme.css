@@ -1,0 +1,349 @@
+/* ============================================================
+   H2 OS — Obsidian Theme  v0.1.0-dev (Phase 0: token foundation)
+   字体: Poppins · Montserrat · Source Han Sans · JetBrains Mono
+   色彩: White #FFFFFF · Gray #18181B / #52525B · Red #D14A4A
+   几何: 圆(交互) · 方(内容) · 三角(签名)
+   ============================================================
+   Phase 0 只定义 token，不写组件。切到 Obsidian 验证裸色板对了再往上盖。
+   设计文档: Uranus/1 Projects/H2 OS/H2 OS 主题介绍.md
+   ============================================================*/
+
+
+/* ════════════════════════════════════════════════════════════
+   TOKENS · 模式无关（字体 / 圆角 / 排版 / 阴影 / 动效）
+   这些与明暗无关，放 body 层级，亮色唯一模式也继承得到。
+   ════════════════════════════════════════════════════════════ */
+
+body {
+  /* ── 字体栈 ────────────────────────────────────────────────
+     拉丁文走 Geometric Sans（Poppins/Montserrat），从字体层面呼应
+     几何语法。system-ui 前垫 Avenir Next / Segoe UI Variable 作平台
+     降级，无 Poppins 的用户也能更接近设计意图。不内置字体（市场禁止）。
+     ──────────────────────────────────────────────────────────── */
+  --font-text-theme:
+    'Poppins', 'Montserrat', 'Jost',
+    'Avenir Next', 'Segoe UI Variable', 'Segoe UI',
+    system-ui, -apple-system, BlinkMacSystemFont, Roboto,
+    Helvetica, Arial,
+    'Source Han Sans SC', 'Source Han Sans CN', 'Noto Sans CJK SC',
+    '思源黑体', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  --font-interface-theme:
+    'Poppins', 'Montserrat',
+    'Avenir Next', 'Segoe UI Variable', 'Segoe UI',
+    system-ui, -apple-system, BlinkMacSystemFont, Roboto,
+    Helvetica, Arial,
+    'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  /* 标题共享正文栈（H2 OS 不为标题单设字族，层级靠字号字重，不靠字族切换） */
+  --font-heading-theme: var(--font-text-theme);
+
+  --font-monospace-theme:
+    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+  --font-mermaid: var(--font-interface-theme);
+
+  /* 中英混排：Geometric Sans 数字字宽偏宽，收紧字距 + 等宽数字 */
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* ── 排版节奏（2026 现代感的信号，不是洁癖） ───────────────
+     所有间距必须落在 --h2-space-unit (4px) 的倍数上。
+     禁止 13px / 11px / 7px 这类孤儿值。
+     ──────────────────────────────────────────────────────────── */
+  --h2-space-unit: 4px;
+  --h2-font-size-base: 16px;
+  --h2-line-height-body: 1.7;
+  --h2-line-height-heading: 1.3;
+
+  /* Obsidian 读取这些渲染标题；1.25 模数，实测后回填主文档表格 */
+  --inline-title-size: 2rem;     /* 1.25^4 × 16 ≈ 31.4 → 取整 32 */
+  --h1-size: 2rem;               /* 与 inline title 对齐 */
+  --h2-size: 1.6rem;             /* 1.25^2 ≈ 1.56 → 取 1.6 */
+  --h3-size: 1.25rem;
+  --h4-size: 1.125rem;
+  --h5-size: 1rem;
+  --h6-size: 0.875rem;
+
+  /* 段落与列表间距：落在 4px 网格（1rem=16px, 0.5rem=8px, 0.75rem=12px） */
+  --p-spacing: 1rem;
+  --list-spacing: 0.5rem;
+
+  /* ── 圆角（对应几何语法） ─────────────────────────────────
+     方元素直角（content=0），圆元素柔角。
+     使用 Obsidian 官方变量，不自造一套。
+     ──────────────────────────────────────────────────────────── */
+  --radius-s:  4px;   /* tag、menu item、status chip */
+  --radius-m:  6px;   /* button、input、dropdown */
+  --radius-l:  8px;   /* popover、command palette */
+  --radius-xl: 12px;  /* modal、dialog */
+  /* content 圆角 = 0，直接在组件上写 border-radius: 0，不造变量 */
+  /* round 圆角 = 50%/100vw，直接在组件上写 */
+
+  /* ── Elevation 阴影（可逆：显脏就清空这三个 token，全局退回） ──
+     所有阴影走 token 出口，组件只 box-shadow: var(--h2-shadow-N)，
+     不内联散值。
+     ──────────────────────────────────────────────────────────── */
+  --h2-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.04);   /* 卡片、浮层 */
+  --h2-shadow-2: 0 4px 12px rgba(0, 0, 0, 0.06);  /* popover、菜单 */
+  --h2-shadow-3: 0 8px 24px rgba(0, 0, 0, 0.08);  /* modal、notice */
+  --background-modifier-box-shadow: rgba(0, 0, 0, 0.06);
+
+  /* ── 动效（与色板同级，Phase 0 定稿，不是收尾补丁） ──────────
+     只 transition 具体属性，不动 layout 属性。
+     reduced-motion 时 duration 归零（见文件尾兜底）。
+     ──────────────────────────────────────────────────────────── */
+  --h2-duration-fast: 120ms;   /* hover tint、颜色变化 */
+  --h2-duration-base: 180ms;   /* 展开/收起、位移 */
+  --h2-duration-slow: 240ms;   /* modal、popover 出现 */
+  --h2-ease: cubic-bezier(0.4, 0, 0.2, 1);  /* MD standard，克制处理 */
+
+  /* 组件过渡默认值：写组件时优先用这个组合，不自造 */
+  --h2-transition-color: color var(--h2-duration-fast) var(--h2-ease),
+                         background-color var(--h2-duration-fast) var(--h2-ease),
+                         border-color var(--h2-duration-fast) var(--h2-ease);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   TOKENS · 亮色模式（唯一支持的模式）
+   primitive 色阶 → semantic 语义别名 → 映射给 Obsidian 原生变量。
+   改色只动 --h2-*，Obsidian 那一层自动跟。
+   ════════════════════════════════════════════════════════════ */
+
+body.theme-light {
+  background-color: #FFFFFF;  /* 窗口 resize 时最先涂的颜色，消除白闪 */
+
+  /* ── primitive：原始色阶 ─────────────────────────────────── */
+
+  /* 中性灰阶（白底克制路线的主干） */
+  --h2-white:    #FFFFFF;
+  --h2-gray-50:  #FAFAFA;
+  --h2-gray-100: #F4F4F5;
+  --h2-gray-200: #E4E4E7;
+  --h2-gray-300: #D4D4D8;
+  --h2-gray-400: #A1A1AA;  /* 图标、禁用态（2.6:1，不可做正文） */
+  --h2-gray-500: #71717A;  /* 次要文字（4.6:1，达 AA） */
+  --h2-gray-600: #52525B;  /* 正文 */
+  --h2-gray-700: #3F3F46;
+  --h2-gray-900: #18181B;  /* 标题、主文字 */
+
+  /* 降饱和一加红（点缀用，不做大面积填充） */
+  --h2-red-300: #E88080;   /* hover 背景 tint、轻撞色 */
+  --h2-red-400: #DB6060;
+  --h2-red-500: #D14A4A;   /* 强调统帅色（4.4:1，限 hover 瞬态） */
+  --h2-red-600: #B83A3A;   /* hover 状态 */
+
+  /* Callout 语义色（低饱和撞色，每种语义一个色相） */
+  --h2-sky:     #5B8FB9;   /* info */
+  --h2-amber:   #C99A4A;   /* warning */
+  --h2-crimson: #B85555;   /* error / danger */
+  --h2-sage:    #6B9B6B;   /* success / tip */
+
+  /* ── semantic：语义别名（组件只引用这些，不引用 primitive） ── */
+
+  /* 强调色：降饱和一加红，只做点缀 */
+  --h2-accent:         var(--h2-red-500);
+  --h2-accent-hover:   var(--h2-red-600);
+  --h2-accent-tint:    var(--h2-red-300);
+
+  /* 背景：白底克制，逐级微差 */
+  --h2-bg:             var(--h2-white);       /* 主背景 */
+  --h2-bg-subtle:      var(--h2-gray-50);     /* 编辑区微差 */
+  --h2-bg-surface:     var(--h2-gray-100);    /* 侧边栏、二级表面 */
+  --h2-bg-elevated:    var(--h2-white);       /* 弹窗、浮层（靠阴影抬升） */
+
+  /* 文字：标题用 Gray 900，正文 Gray 600，次要 Gray 500 */
+  --h2-text:           var(--h2-gray-900);    /* 标题、主文字 */
+  --h2-text-body:      var(--h2-gray-600);    /* 正文 */
+  --h2-text-muted:     var(--h2-gray-500);    /* 次要文字（达 AA） */
+  --h2-text-faint:     var(--h2-gray-400);    /* 图标、placeholder、禁用 */
+
+  /* 边线：hairline 一致性是直角路线的生命线 */
+  --h2-border:         var(--h2-gray-200);    /* 分隔线 */
+  --h2-border-strong:  var(--h2-gray-300);    /* 强调边框 */
+
+  /* ── 映射给 Obsidian 原生变量（Obsidian 内部 CSS 读这些渲染） ── */
+
+  /* 背景层级 */
+  --background-primary:             var(--h2-bg);
+  --background-primary-alt:         var(--h2-bg-subtle);
+  --background-secondary:           var(--h2-bg-surface);
+  --background-secondary-alt:       var(--h2-gray-200);
+  --background-modifier-border:     var(--h2-border);
+  --background-modifier-border-hover: var(--h2-border-strong);
+  --background-modifier-border-focus: var(--h2-accent);
+  --background-modifier-form-field: var(--h2-white);
+  --background-modifier-form-field-highlighted: var(--h2-gray-50);
+  --background-modifier-success:    rgba(107, 155, 107, 0.12);   /* sage tint */
+  --background-modifier-error:      rgba(184, 85, 85, 0.12);     /* crimson tint */
+  --background-modifier-cover:      rgba(255, 255, 255, 0.92);
+
+  /* 文字层级 */
+  --text-normal:        var(--h2-text-body);
+  --text-muted:         var(--h2-text-muted);
+  --text-faint:         var(--h2-text-faint);
+  --text-on-accent:     var(--h2-white);
+  --text-on-accent-inverted: var(--h2-white);
+  --text-error:         var(--h2-crimson);
+  --text-success:       var(--h2-sage);
+  --text-highlight-bg:  rgba(209, 74, 74, 0.14);   /* 红色 tint，克制 */
+  --text-accent:        var(--h2-accent);
+  --text-accent-hover:  var(--h2-accent-hover);
+  --text-selection:     rgba(209, 74, 74, 0.18);
+
+  /* 强调色 */
+  --interactive-accent:        var(--h2-accent);
+  --interactive-accent-hover:  var(--h2-accent-hover);
+  --interactive-accent-rgb:    209, 74, 74;
+  --interactive-normal:        var(--h2-bg-surface);
+  --interactive-hover:         var(--h2-gray-200);
+
+  /* Obsidian 内部 focus / 选中用 --color-accent，不设则默认蓝 */
+  --color-accent:    var(--h2-accent);
+  --color-accent-1:  rgba(209, 74, 74, 0.14);
+  --color-accent-2:  rgba(209, 74, 74, 0.08);
+
+  /* 标题颜色：全部 Gray 900，层级靠字号字重，不靠颜色（heading 不参与撞色） */
+  --h1-color: var(--h2-text);
+  --h2-color: var(--h2-text);
+  --h3-color: var(--h2-text);
+  --h4-color: var(--h2-text);
+  --h5-color: var(--h2-text-body);
+  --h6-color: var(--h2-text-muted);
+
+  /* 链接：正文默认继承文字色 + 下划线，hover 切红 */
+  --link-color:          var(--h2-text);
+  --link-color-hover:    var(--h2-accent);
+  --link-decoration:     underline;
+  --link-decoration-hover: underline;
+  --link-decoration-color:      rgba(82, 82, 91, 0.3);
+  --link-decoration-color-hover: var(--h2-accent);
+  --link-external-color:        var(--h2-text);
+  --link-external-color-hover:  var(--h2-accent);
+  --link-external-decoration:   underline;
+  --link-external-decoration-hover: underline;
+  --link-unresolved-color:      var(--h2-text-faint);
+  --link-unresolved-decoration: underline;
+  --link-unresolved-decoration-color: rgba(161, 161, 170, 0.4);
+
+  /* 导航：hover/active 用红色 tint（克制），selected 用更深 tint */
+  --nav-item-background-hover:    rgba(209, 74, 74, 0.06);
+  --nav-item-background-active:   rgba(209, 74, 74, 0.10);
+  --nav-item-background-selected: rgba(209, 74, 74, 0.12);
+  --nav-item-color:               var(--h2-text-muted);
+  --nav-item-color-hover:         var(--h2-text);
+  --nav-item-color-active:        var(--h2-accent);
+  --nav-item-color-selected:      var(--h2-text);
+
+  /* 图标 */
+  --icon-color:        var(--h2-text-faint);
+  --icon-color-hover:  var(--h2-text-muted);
+  --icon-color-active: var(--h2-accent);
+  --icon-color-focused: var(--h2-accent);
+
+  /* 标签页（Obsidian 官方变量） */
+  --tab-text-color-focused:             var(--h2-text-muted);
+  --tab-text-color-focused-active:      var(--h2-text);
+  --tab-text-color-focused-active-current: var(--h2-text);
+  --tab-background-active:              var(--h2-bg);
+  --tab-outline-color:                  var(--h2-border);
+  --tab-outline-width:                  1px;
+
+  /* 标签：圆角胶囊，轻 tint 背景 */
+  --tag-background:        var(--h2-gray-100);
+  --tag-background-hover:  var(--h2-gray-200);
+  --tag-color:             var(--h2-text-body);
+  --tag-color-hover:       var(--h2-text);
+  --tag-radius:            var(--radius-s);
+
+  /* 滑块 */
+  --slider-track-background:   var(--h2-gray-200);
+  --slider-track-height:       4px;
+  --slider-thumb-border-color: var(--h2-bg);
+  --slider-thumb-color:        var(--h2-accent);
+
+  /* Scrollbar（轻量，不抢戏） */
+  --scrollbar-bg:        transparent;
+  --scrollbar-thumb-bg:  var(--h2-gray-300);
+
+  /* Checkbox：圆形（几何语法），选中后红填充 */
+  --checkbox-radius:         50%;
+  --checkbox-size:           16px;
+  --checkbox-border-width:   1.5px;
+  --checkbox-border-color:       var(--h2-gray-300);
+  --checkbox-border-color-hover: var(--h2-accent);
+  --checkbox-color:              var(--h2-accent);
+  --checkbox-color-hover:        var(--h2-accent-hover);
+  --checkbox-marker-color:       var(--h2-white);
+
+  /* Toggle：圆角矩形开关，跟随官方变量 */
+  --toggle-radius:           18px;
+  --toggle-thumb-radius:     14px;
+  --toggle-width:            36px;
+  --toggle-thumb-width:      14px;
+  --toggle-thumb-height:     14px;
+  --toggle-border-color:     var(--h2-gray-300);
+  --toggle-background-color: var(--h2-gray-200);
+  --toggle-thumb-color:      var(--h2-white);
+  --toggle-color:            var(--h2-accent);
+  --toggle-color-hover:      var(--h2-accent-hover);
+
+  /* Callout 语义色映射（Obsidian 读这些） */
+  --callout-color-info:        var(--h2-sky);
+  --callout-color-warning:     var(--h2-amber);
+  --callout-color-error:       var(--h2-crimson);
+  --callout-color-danger:      var(--h2-crimson);
+  --callout-color-success:     var(--h2-sage);
+  --callout-color-tip:         var(--h2-sage);
+  --callout-color-question:    var(--h2-amber);
+  --callout-color-abstract:    var(--h2-sky);
+  --callout-color-summary:     var(--h2-sky);
+  --callout-color-quote:       var(--h2-gray-500);
+  --callout-color-example:     var(--h2-accent);
+
+  /* 代码块（方形语义，content 圆角=0） */
+  --code-background:         var(--h2-gray-50);
+  --code-normal:             var(--h2-text);
+  --code-comment:            var(--h2-text-faint);
+  --code-keyword:            var(--h2-crimson);
+  --code-function:           var(--h2-sky);
+  --code-string:             var(--h2-sage);
+  --code-number:             var(--h2-amber);
+  --code-tag:                var(--h2-red-500);
+  --code-operator:           var(--h2-text-body);
+  --code-attr:               var(--h2-amber);
+  --code-property:           var(--h2-sky);
+  --code-value:              var(--h2-sage);
+  --code-punctuation:        var(--h2-text-muted);
+
+  /* 表格 hairline（直角路线生命线，1px 一致） */
+  --table-header-border:    1px solid var(--h2-border);
+  --table-border-width:     0px;     /* 关掉单元格内框，hairline 由主题显式画 */
+  --table-header-background: var(--h2-gray-50);
+
+  /* Blockquote：中性 rail，去掉默认蓝 */
+  --blockquote-border-thickness: 3px;
+  --blockquote-border-color:     var(--h2-gray-300);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   兜底：reduced-motion 时动效归零（动效纪律的兜底机制）
+   ════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    --h2-duration-fast: 0ms;
+    --h2-duration-base: 0ms;
+    --h2-duration-slow: 0ms;
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   Phase 0 终止线。以下为 Phase 1+ 占位，验证完裸色板再写。
+   ════════════════════════════════════════════════════════════ */

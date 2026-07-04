@@ -703,23 +703,46 @@ h5, h6 {
    方点列 rail 毙掉——点列不比实线多传达信息，纯增噪，且多段引用对齐是无底洞。
    ⚠️ 3px 属于 rail 部件，不是 hairline（1px）体系。Phase 1 那条
    "hairline 均 1px"验收标准不适用于此——rail 是结构性强调，独立部件类。
+
+   ⚠️ 选择器覆盖坑（曾导致 rail 渲染成深灰而非 Gray 300）：
+   Obsidian 阅读模式实际渲染走 .markdown-rendered blockquote（不是
+   .markdown-preview-view blockquote），后者特异性不够会被默认层压过。
+   Live Preview 的 rail 是独立元素 .cm-blockquote-border，要单独接管。
    ──────────────────────────────────────────────────────────── */
-.markdown-preview-view blockquote,
-.markdown-source-view.mod-cm6 .HyperMD-quote {
+
+/* 阅读模式：用 .markdown-rendered blockquote 接管（Obsidian 实际渲染的容器） */
+.markdown-rendered blockquote {
   border-left: var(--blockquote-border-thickness) solid var(--blockquote-border-color);
   background: transparent;
   color: var(--h2-text-muted);
   font-style: normal;          /* 不斜体，保持现代克制 */
-  padding-left: 1rem;          /* 16px，4px 网格 */
-  padding-right: 1rem;
+  padding: 0.25rem 1rem 0.25rem 1rem;   /* 4px 16px 4px 16px，4px 网格 */
   margin-block-start: 1rem;
   margin-block-end: 1rem;
 }
 
-/* Live Preview 引用块行：只给左 rail，不要每行独立背景 */
+/* Live Preview：引用块文字行 */
 .markdown-source-view.mod-cm6 .HyperMD-quote {
-  background: transparent;
+  background: transparent !important;
+  font-style: normal !important;
+  color: var(--h2-text-muted);
+  border-left: none !important;   /* 文字行不画 rail，rail 由 .cm-blockquote-border 画 */
 }
+
+/* Live Preview：rail 是独立元素 .cm-blockquote-border，单独接管。
+   不 display:none（不像 Folio 走引号路线需要消灭它）——H2 OS 保留实线 rail，
+   只把它的颜色/宽度接管到主题 token。 */
+.markdown-source-view.mod-cm6 .cm-blockquote-border {
+  border-left: var(--blockquote-border-thickness) solid var(--blockquote-border-color) !important;
+  background-color: transparent !important;
+}
+
+/* 引用块内段落间距收紧 */
+.markdown-rendered blockquote p {
+  margin: 0.25rem 0;   /* 4px，4px 网格 */
+}
+.markdown-rendered blockquote p:first-child { margin-top: 0; }
+.markdown-rendered blockquote p:last-child  { margin-bottom: 0; }
 
 /* ── Callout（方形主体 + 左上角三角折角签名 + 语义色 rail）──────
    折角用 .callout::before 伪元素 clip-path 画三角，绝不 clip 容器

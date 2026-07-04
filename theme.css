@@ -688,10 +688,15 @@ h5, h6 {
   transform: translate(-50%, -60%) rotate(45deg);
 }
 
-/* 完成态任务文字：faint（不删除线，保留可读性） */
+/* 完成态任务文字：faint（不删除线，保留可读性）。
+   覆盖阅读模式（.task-list-item.is-checked）+ Live Preview
+   （Obsidian 在 LP 用 .cm-formatting-task + 父级行处理，但完成态文字
+   降级走 .task-list-item 即可——LP 的 is-checked 也加在 li 上）。
+   用 !important 确保压过 Obsidian 默认的 line-through 灰色规则。 */
 .markdown-preview-view ul > li.task-list-item.is-checked,
-.markdown-preview-view ol > li.task-list-item.is-checked {
-  color: var(--h2-text-faint);
+.markdown-preview-view ol > li.task-list-item.is-checked,
+.markdown-source-view.mod-cm6 .HyperMD-task-line:has(.task-list-item-checkbox:checked) {
+  color: var(--h2-text-faint) !important;
 }
 
 /* ── Blockquote（实线 3px Gray 300 rail，无装饰点列）────────────
@@ -722,13 +727,18 @@ h5, h6 {
    签名三角放左上角，和 title 右侧折叠箭头分居两端不打架。
    语义色集中在 title / icon / 左 rail / 折角，主体保持低饱和填充。
    ⚠️ 三角的出场点：氢视窗 + 折叠标记 + callout 折角（三处，几何语法表已更新）。
+
+   语义色机制（修通的关键）：所有内部元素引用 --callout-accent；
+   按 [data-callout] 选择器显式注入语义色到 --callout-accent。
+   光定义 --callout-color-* token 不够，必须用 type 选择器接上。
    ──────────────────────────────────────────────────────────── */
 .callout {
-  --callout-color: var(--h2-gray-300);   /* 默认中性，被 Obsidian 按 type 覆盖 */
-  background: color-mix(in srgb, var(--callout-color) 6%, var(--h2-bg));
+  /* 默认 callout（无 type，如 Note）：用 Gray 500，不是极浅的 Gray 300 */
+  --callout-accent: var(--h2-gray-500);
+  background: color-mix(in srgb, var(--callout-accent) 6%, var(--h2-bg));
   border: 1px solid var(--h2-border);
   border-radius: 0;                       /* 方形语义 */
-  border-left: 3px solid var(--callout-color);   /* 语义色左 rail，3px 同 blockquote 部件类 */
+  border-left: 3px solid var(--callout-accent);   /* 语义色左 rail，3px 同 blockquote 部件类 */
   padding: 0.75rem 1rem;                  /* 12px 16px，4px 网格 */
   margin-block-start: 1rem;
   margin-block-end: 1rem;
@@ -736,7 +746,32 @@ h5, h6 {
   overflow: visible;                      /* 折角伪元素允许溢出到容器外角 */
 }
 
-/* 左上角三角折角签名：用伪元素 clip-path 画，不 clip 容器 */
+/* 按 type 显式注入语义色到 --callout-accent（Obsidian 惯例机制）。
+   这是"语义色集中在 title/icon/rail/折角"能落地的前提——
+   光在 token 层定义 --callout-color-* 不接 [data-callout] 选择器，
+   语义色就永远接不上，所有 callout 都会是默认灰。 */
+.callout[data-callout='info']      { --callout-accent: var(--h2-sky); }
+.callout[data-callout='warning']   { --callout-accent: var(--h2-amber); }
+.callout[data-callout='error'],
+.callout[data-callout='danger']    { --callout-accent: var(--h2-crimson); }
+.callout[data-callout='success'],
+.callout[data-callout='tip']       { --callout-accent: var(--h2-sage); }
+.callout[data-callout='question']  { --callout-accent: var(--h2-amber); }
+.callout[data-callout='abstract'],
+.callout[data-callout='summary']   { --callout-accent: var(--h2-sky); }
+.callout[data-callout='quote']     { --callout-accent: var(--h2-gray-500); }
+.callout[data-callout='example']   { --callout-accent: var(--h2-accent); }
+.callout[data-callout='bug']       { --callout-accent: var(--h2-crimson); }
+.callout[data-callout='failure'],
+.callout[data-callout='missing'],
+.callout[data-callout='todo']      { --callout-accent: var(--h2-gray-500); }
+.callout[data-callout='done'],
+.callout[data-callout='check']     { --callout-accent: var(--h2-sage); }
+.callout[data-callout='hint']      { --callout-accent: var(--h2-sky); }
+.callout[data-callout='note']      { --callout-accent: var(--h2-gray-500); }
+
+/* 左上角三角折角签名：用伪元素 clip-path 画，不 clip 容器。
+   颜色取 --callout-accent，随 type 切换语义色。 */
 .callout::before {
   content: '';
   position: absolute;
@@ -744,15 +779,17 @@ h5, h6 {
   left: 0;
   width: 16px;     /* 4px 网格 */
   height: 16px;
-  background: var(--callout-color);
+  background: var(--callout-accent);
   clip-path: polygon(0 0, 100% 0, 0 100%);   /* 左上直角三角形 */
   opacity: 0.85;
   pointer-events: none;
 }
 
-/* Callout title：语义色集中区 */
+/* Callout title：语义色集中区。title 必须可读，不能 faint。
+   用语义色但保证对比度——不直接用浅色 token，而是用语义色本身
+   （这些色都是为 title/icon 设计的中等明度色）。 */
 .callout .callout-title {
-  color: var(--callout-color);
+  color: var(--callout-accent);
   font-weight: 600;
   font-size: 0.9375rem;   /* 15px，4px 网格 */
   padding: 0;
@@ -762,11 +799,16 @@ h5, h6 {
 /* 折叠箭头：Obsidian 原生三角，title 右侧——这是"折叠标记"的合法出场 */
 .callout .callout-fold.is-collapsed .callout-fold,
 .callout .callout-fold {
-  color: var(--callout-color);
+  color: var(--callout-accent);
   transition: transform var(--h2-duration-base) var(--h2-ease);
 }
 
-/* Callout 内容：继承正文色，不跟随 callout 语义色 */
+/* Callout icon：跟随语义色 */
+.callout .callout-icon svg {
+  color: var(--callout-accent);
+}
+
+/* Callout 内容：继承正文色，不跟随 callout 语义色（保持正文可读） */
 .callout .callout-content {
   color: var(--text-normal);
   margin-top: 0.5rem;     /* 8px，4px 网格 —— title 与内容间距 */
@@ -774,11 +816,6 @@ h5, h6 {
 
 .callout .callout-content > :first-child { margin-top: 0; }
 .callout .callout-content > :last-child  { margin-bottom: 0; }
-
-/* Callout icon：跟随语义色 */
-.callout .callout-icon svg {
-  color: var(--callout-color);
-}
 
 
 /* ════════════════════════════════════════════════════════════

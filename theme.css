@@ -749,26 +749,49 @@ h5, h6 {
 /* 按 type 显式注入语义色到 --callout-accent（Obsidian 惯例机制）。
    这是"语义色集中在 title/icon/rail/折角"能落地的前提——
    光在 token 层定义 --callout-color-* 不接 [data-callout] 选择器，
-   语义色就永远接不上，所有 callout 都会是默认灰。 */
-.callout[data-callout='info']      { --callout-accent: var(--h2-sky); }
-.callout[data-callout='warning']   { --callout-accent: var(--h2-amber); }
-.callout[data-callout='error'],
-.callout[data-callout='danger']    { --callout-accent: var(--h2-crimson); }
-.callout[data-callout='success'],
-.callout[data-callout='tip']       { --callout-accent: var(--h2-sage); }
-.callout[data-callout='question']  { --callout-accent: var(--h2-amber); }
+   语义色就永远接不上，所有 callout 都会是默认灰。
+
+   ⚠️ 按组写（一组一条选择器，所有别名列全），不按类型零敲碎打。
+   H2 OS 只有 4 个语义色相 + 中性灰，21 种 callout type 到色相的
+   完整映射表见主文档《H2 OS 主题介绍.md》callout 条目。
+   example 归 Amber（不是 Sky）——示例带"请看这里"的引导性，
+   和 warning/caution 共享注意语义，且避免和 abstract 混色。 */
+
+/* Sky（信息）—— note、info、todo、abstract、summary、tldr */
+.callout[data-callout='note'],
+.callout[data-callout='info'],
+.callout[data-callout='todo'],
 .callout[data-callout='abstract'],
-.callout[data-callout='summary']   { --callout-accent: var(--h2-sky); }
-.callout[data-callout='quote']     { --callout-accent: var(--h2-gray-500); }
-.callout[data-callout='example']   { --callout-accent: var(--h2-accent); }
-.callout[data-callout='bug']       { --callout-accent: var(--h2-crimson); }
+.callout[data-callout='summary'],
+.callout[data-callout='tldr']      { --callout-accent: var(--h2-sky); }
+
+/* Sage（正面）—— tip、hint、success、check、done */
+.callout[data-callout='tip'],
+.callout[data-callout='hint'],
+.callout[data-callout='success'],
+.callout[data-callout='check'],
+.callout[data-callout='done']      { --callout-accent: var(--h2-sage); }
+
+/* Amber（注意）—— warning、caution、attention、question、help、faq、example */
+.callout[data-callout='warning'],
+.callout[data-callout='caution'],
+.callout[data-callout='attention'],
+.callout[data-callout='question'],
+.callout[data-callout='help'],
+.callout[data-callout='faq'],
+.callout[data-callout='example']   { --callout-accent: var(--h2-amber); }
+
+/* Crimson（负面）—— danger、error、bug、failure、fail、missing */
+.callout[data-callout='danger'],
+.callout[data-callout='error'],
+.callout[data-callout='bug'],
 .callout[data-callout='failure'],
-.callout[data-callout='missing'],
-.callout[data-callout='todo']      { --callout-accent: var(--h2-gray-500); }
-.callout[data-callout='done'],
-.callout[data-callout='check']     { --callout-accent: var(--h2-sage); }
-.callout[data-callout='hint']      { --callout-accent: var(--h2-sky); }
-.callout[data-callout='note']      { --callout-accent: var(--h2-gray-500); }
+.callout[data-callout='fail'],
+.callout[data-callout='missing']   { --callout-accent: var(--h2-crimson); }
+
+/* 灰（中性）—— quote、cite */
+.callout[data-callout='quote'],
+.callout[data-callout='cite']      { --callout-accent: var(--h2-gray-500); }
 
 /* 左上角三角折角签名：用伪元素 clip-path 画，不 clip 容器。
    颜色取 --callout-accent，随 type 切换语义色。 */

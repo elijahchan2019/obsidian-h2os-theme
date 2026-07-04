@@ -865,5 +865,147 @@ h5, h6 {
 
 
 /* ════════════════════════════════════════════════════════════
-   Phase 2 终止线。辨识度测试通过后进 Phase 3。
+   UI CHROME · Phase 3 界面 chrome
+   settings → status/notice → file tree → tabs
+   纪律：chrome 的目标是"没存在感"——克制到不抢内容视线。
+        红色只给 active tab（状态）和 hover 瞬态；rail 不进文件树
+        （保留给语义块，避免通货膨胀）。间距落 4px 网格。
+   Phase 3 验收（顾问心法）：内容区截图里 chrome 越"没存在感"越好。
+        chrome 抢了内容的视线就是做过了。
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Settings（设置页：回退系统字体，沿用前两作教训）──────────
+   Geometric Sans 的 metrics 会破坏 Obsidian 原生设置项布局
+   （checkbox 对不齐、input 高度错位）。整页强制回退系统字体。
+   ──────────────────────────────────────────────────────────── */
+.app-settings,
+.workspace-leaf-content[data-type="settings"] {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif !important;
+}
+
+/* 设置页的 A11y 侧边导航也用系统字体 */
+.vertical-tab-header,
+.vertical-tab-content {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+}
+
+/* 设置项 active 状态：用沉浸底色，不强行加灰底卡片（第三方插件兼容） */
+.vertical-tab-nav-item.is-active {
+  background: var(--h2-gray-100);
+  color: var(--h2-text);
+  font-weight: 500;
+}
+
+
+/* ── Status bar + Notice ─────────────────────────────────────
+   notice 用 shadow-2（面积越小阴影越轻，MD 物理隐喻）。
+   status bar 底色用 surface 层（Gray 100），hairline 分隔。
+   ──────────────────────────────────────────────────────────── */
+.status-bar {
+  background: var(--h2-bg-surface);
+  color: var(--h2-text-muted);
+  font-size: 0.75rem;     /* 12px，4px 网格 */
+  font-family: var(--font-interface-theme);
+  border-top: 1px solid var(--h2-border);
+  padding: 0.25rem 1rem;  /* 4px 16px，4px 网格 */
+}
+
+/* Notice：右下角弹出提示。shadow-2 不浮太重 */
+.notice {
+  background: var(--h2-gray-900);
+  color: var(--h2-white);
+  border-radius: var(--radius-l);
+  box-shadow: var(--h2-shadow-2);
+  padding: 0.75rem 1rem;   /* 12px 16px，4px 网格 */
+  font-size: 0.875rem;     /* 14px，4px 网格 */
+}
+
+
+/* ── File tree / Outline（文件树：active 整行 tint，无 rail）────
+   active 状态整行红 tint + 文字加深（Gray 900），无 rail——
+   rail 是 blockquote/callout 的语义块部件，文件树高频区挂红 rail
+   会让签名部件通货膨胀。hover 轻量。
+   ──────────────────────────────────────────────────────────── */
+
+/* 文件树项 active 状态：整行红 tint + 文字加深到 Gray 900 */
+.tree-item-self.is-active,
+.nav-file-title.is-active,
+.nav-folder-title.is-active,
+.outline-item.is-active {
+  background: var(--nav-item-background-active);   /* 0.10 红 tint */
+  color: var(--h2-text);    /* Gray 900，加深。不用红字——tint 已承担红色语义 */
+  font-weight: 500;
+  border-radius: var(--radius-s);
+}
+
+/* 大纲（outline）同处理 */
+.workspace-leaf-content[data-type="outline"] .outline-item.is-active {
+  background: var(--nav-item-background-active);
+  color: var(--h2-text);
+  font-weight: 500;
+}
+
+/* 文件树 hover：轻量 tint */
+.nav-file-title:hover,
+.nav-folder-title:hover,
+.tree-item-self:hover,
+.outline-item:hover {
+  background: var(--nav-item-background-hover);   /* 0.06 红 tint */
+  border-radius: var(--radius-s);
+  transition: var(--h2-transition-color);
+}
+
+
+/* ── Tabs（标签栏：active 顶部 2px 红线 + 白底）────────────────
+   active tab 顶部 2px 红线（Red 500）+ 白底。每个 pane 只有一个
+   active tab，画面上红线永远只有一两条——红色出现即亮点，不泛滥。
+   pinned tab 用灰阶小圆点替代关闭按钮（圆 = 状态点，几何语法归属）。
+   ──────────────────────────────────────────────────────────── */
+
+/* tab 容器：去掉默认的下方分隔线，让 active 红线更突出 */
+.workspace-tabs .workspace-tab-header-container {
+  border-bottom: 1px solid var(--h2-border);
+}
+
+/* 单个 tab：active 状态加顶部红线，非 active 无线 */
+.workspace-tab-header {
+  background: transparent;
+  color: var(--h2-text-muted);
+  transition: var(--h2-transition-color);
+}
+
+.workspace-tab-header:hover {
+  color: var(--h2-text);
+}
+
+/* active tab：顶部 2px 红线 + 白底。
+   用 ::before 伪元素画顶部线，避免动 Obsidian tab 的 box 结构。 */
+.workspace-tab-header.is-active {
+  color: var(--h2-text);
+  background: var(--h2-bg);
+}
+
+.workspace-tab-header.is-active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--h2-accent);   /* Red 500，红色纪律的合法 active 用途 */
+}
+
+/* pinned tab：用灰阶小圆点替代关闭按钮（圆 = 状态点，几何语法归属）。
+   pinned 是"属性"不是"active 状态"，不用红。 */
+.workspace-tab-header.is-active.workspace-tab-header-item {
+  position: relative;   /* 给 ::before 顶部线定位 */
+}
+
+.workspace-tab-header {
+  position: relative;   /* 统一给所有 tab 定位，避免 is-active 单独设 */
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   Phase 3 终止线。chrome 不抢内容视线验收通过后进 Phase 4。
    ════════════════════════════════════════════════════════════ */

@@ -88,8 +88,8 @@ body {
      不内联散值。
      ──────────────────────────────────────────────────────────── */
   --h2-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.04);   /* 卡片、浮层 */
-  --h2-shadow-2: 0 4px 12px rgba(0, 0, 0, 0.06);  /* popover、菜单 */
-  --h2-shadow-3: 0 8px 24px rgba(0, 0, 0, 0.08);  /* modal、notice */
+  --h2-shadow-2: 0 4px 12px rgba(0, 0, 0, 0.06);  /* popover、菜单、notice */
+  --h2-shadow-3: 0 8px 24px rgba(0, 0, 0, 0.08);  /* modal */
   --background-modifier-box-shadow: rgba(0, 0, 0, 0.06);
 
   /* ── 动效（与色板同级，Phase 0 定稿，不是收尾补丁） ──────────
@@ -230,13 +230,15 @@ body.theme-light {
   --link-unresolved-decoration: underline;
   --link-unresolved-decoration-color: rgba(161, 161, 170, 0.4);
 
-  /* 导航：hover/active 用红色 tint（克制），selected 用更深 tint */
-  --nav-item-background-hover:    rgba(209, 74, 74, 0.06);
-  --nav-item-background-active:   rgba(209, 74, 74, 0.10);
-  --nav-item-background-selected: rgba(209, 74, 74, 0.12);
+  /* 导航：hover/active 用灰阶 tint（不是红——红色纪律：持续态/大面积不用红）。
+     用相对透明度 rgba(0,0,0,N)，白底灰底都成立（避免 Gray 100 同色叠同色隐形）。
+     灰阶 tint 对比天然弱于红 tint，active 靠 500 字重补辨识度。 */
+  --nav-item-background-hover:    rgba(0, 0, 0, 0.04);
+  --nav-item-background-active:   rgba(0, 0, 0, 0.07);
+  --nav-item-background-selected: rgba(0, 0, 0, 0.07);
   --nav-item-color:               var(--h2-text-muted);
   --nav-item-color-hover:         var(--h2-text);
-  --nav-item-color-active:        var(--h2-accent);
+  --nav-item-color-active:        var(--h2-text);   /* Gray 900，不是红 */
   --nav-item-color-selected:      var(--h2-text);
 
   /* 图标 */
@@ -921,19 +923,20 @@ h5, h6 {
 }
 
 
-/* ── File tree / Outline（文件树：active 整行 tint，无 rail）────
-   active 状态整行红 tint + 文字加深（Gray 900），无 rail——
-   rail 是 blockquote/callout 的语义块部件，文件树高频区挂红 rail
-   会让签名部件通货膨胀。hover 轻量。
+/* ── File tree / Outline（文件树：active 整行灰阶 tint，无 rail）──
+   active 状态整行灰阶 tint + 文字加深（Gray 900）+ 500 字重，无 rail——
+   rail 是 blockquote/callout 的语义块部件，文件树高频区挂红 rail 会让签名部件通货膨胀。
+   且红色纪律：active file 是持续态/大面积，用红会变成常驻粉块；红只给瞬态/小面积
+   （active tab 顶线、hover、checkbox）。灰阶 tint 靠 500 字重补辨识度。
    ──────────────────────────────────────────────────────────── */
 
-/* 文件树项 active 状态：整行红 tint + 文字加深到 Gray 900 */
+/* 文件树项 active 状态：整行灰阶 tint + 文字 Gray 900 + 500 字重 */
 .tree-item-self.is-active,
 .nav-file-title.is-active,
 .nav-folder-title.is-active,
 .outline-item.is-active {
-  background: var(--nav-item-background-active);   /* 0.10 红 tint */
-  color: var(--h2-text);    /* Gray 900，加深。不用红字——tint 已承担红色语义 */
+  background: var(--nav-item-background-active);   /* rgba(0,0,0,0.07) 灰阶 */
+  color: var(--h2-text);    /* Gray 900，不是红 */
   font-weight: 500;
   border-radius: var(--radius-s);
 }
@@ -1003,6 +1006,23 @@ h5, h6 {
 
 .workspace-tab-header {
   position: relative;   /* 统一给所有 tab 定位，避免 is-active 单独设 */
+  overflow: visible;    /* 防止顶部红线被容器裁切 */
+}
+
+/* active tab 顶部红线提到最上层，避免被 tab 内部元素盖住 */
+.workspace-tab-header.is-active::before {
+  z-index: 2;
+}
+
+/* Pin 图标：pinned 是"属性"不是"active 状态"，强制灰阶，不吃 accent。
+   Obsidian 原生 pin 图标会跟随 --icon-color-active（红），这里显式压灰。 */
+.workspace-tab-header.is-pinned .svg-icon,
+.workspace-tab-header:has(.pin-icon) .svg-icon {
+  color: var(--h2-text-faint);
+}
+.workspace-tab-header.is-pinned:hover .svg-icon,
+.workspace-tab-header:has(.pin-icon):hover .svg-icon {
+  color: var(--h2-text-muted);
 }
 
 

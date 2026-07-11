@@ -174,6 +174,11 @@ body.theme-light {
   /* 边线：hairline 一致性是直角路线的生命线 */
   --h2-border:         var(--h2-gray-200);    /* 分隔线 */
   --h2-border-strong:  var(--h2-gray-300);    /* 强调边框 */
+  /* 签名构造线（v0.8.6，Elijah 立项）：全主题仅两条——导航栏下沿
+     （横）+ 设置页左栏右沿（竖）。红 500 半透明压暗，细而不响。
+     ⚠️ 红色纪律第 5 例外：构造线级红持续态，限定一横一竖各一条，
+     禁止扩散到其他分隔线。 */
+  --h2-line-signature: rgba(209, 74, 74, 0.5);
 
   /* ── 映射给 Obsidian 原生变量（Obsidian 内部 CSS 读这些渲染） ── */
 
@@ -269,7 +274,11 @@ body.theme-light {
   /* 标签页（Obsidian 官方变量） */
   --tab-text-color-focused:             var(--h2-text-muted);
   --tab-text-color-focused-active:      var(--h2-text);
-  --tab-text-color-focused-active-current: var(--h2-text);
+  /* v0.8.10：active 页签恒红。原值 h2-text（深灰）导致"焦点进正文
+     红就消失"——与 1382 行的红字规则打架，active 指示忽红忽灰
+     （Elijah 实测困惑，与侧栏图标 v0.8.9 同病）。"你在这里"指示
+     不随键盘焦点闪烁，与侧栏 active 图标同纪律。 */
+  --tab-text-color-focused-active-current: var(--h2-accent);
   --tab-background-active:              transparent;
   --tab-outline-color:                  var(--h2-border);
   --tab-outline-width:                  1px;
@@ -479,6 +488,8 @@ body.theme-light {
     --h2-duration-fast: 0ms;
     --h2-duration-base: 0ms;
     --h2-duration-slow: 0ms;
+    --h2-duration-grand: 0ms;   /* v0.8.2 仪式级时长同步归零 */
+    --h2-duration-line: 0ms;    /* v0.8.7 签名线刷入同步归零 */
   }
   /* W4/S3 入场动画 + 冒尖脉冲兜底：reduced-motion 时全归零 */
   body .modal,
@@ -490,6 +501,22 @@ body.theme-light {
   }
   /* S3a 冒尖脉冲：checkbox 勾选瞬间也归零 */
   body input[type=checkbox]:checked {
+    animation: none !important;
+  }
+  /* v0.8.1 愉悦时刻兜底：三处新动画含固定 delay（60/160ms），
+     光靠 duration token 归零不够，显式关闭。 */
+  body input[type=checkbox]:checked::after,
+  body .inline-title::after,
+  body .workspace-leaf-content[data-type="empty"] .empty-state::before,
+  body .workspace-leaf-content[data-type="empty"] .empty-state::after {
+    animation: none !important;
+  }
+  /* v0.8.3 第二批兜底 */
+  body .search-result-file-matched-text,
+  body .cm-searchMatch-selected,
+  body .sync-status-icon.mod-success svg,
+  body .tree-item-children,
+  body .app-container {
     animation: none !important;
   }
 }
@@ -506,10 +533,6 @@ body.theme-light {
    行高用 token --h2-line-height-body (1.7)，中英混排取宽。
    段落间距用 token --p-spacing (1rem = 16px，落在 4px 网格)。
    ──────────────────────────────────────────────────────────── */
-body {
-  --line-width-normal: var(--h2-line-height-body);
-}
-
 .markdown-preview-view,
 .markdown-source-view.mod-cm6 .cm-content,
 .markdown-source-view.mod-cm6 .cm-line {
@@ -1114,8 +1137,9 @@ h5, h6 {
   align-items: center;
 }
 
-/* 折叠箭头吃语义色（交互元素） */
-.callout .callout-fold.is-collapsed .callout-fold,
+/* 折叠箭头吃语义色（交互元素）。
+   v0.8.1 清理：删除死选择器 .callout-fold.is-collapsed .callout-fold
+   （fold 套 fold，永远匹配不到）。 */
 .callout .callout-fold {
   color: var(--callout-accent);
 }
@@ -1186,7 +1210,6 @@ h5, h6 {
 .collapse-icon svg.svg-icon {
   transition: transform var(--h2-duration-base) var(--h2-ease);
 }
-.callout .callout-fold.is-collapsed .callout-fold,
 .callout .callout-fold {
   transition: transform var(--h2-duration-base) var(--h2-ease);
 }
@@ -1409,16 +1432,42 @@ h5, h6 {
   display: none;
 }
 
-/* Pin 图标：pinned 是"属性"不是"active 状态"，强制灰阶，不吃 accent。
-   ⚠️ Obsidian DOM 里不存在 .is-pinned / .pin-icon——pinned 状态的
-   真实结构是 .workspace-tab-header-status-icon.mod-pinned
-   （Phase 3 踩坑实录：选择器凭空猜、没实测，图标一直吃红不掉色）。 */
-.workspace-tab-header .workspace-tab-header-status-icon.mod-pinned,
-.workspace-tab-header-status-container .workspace-tab-header-status-icon {
-  color: var(--h2-text-faint);
+/* Pin 图标 → 红点 + 灰空心方（v0.8.1 二版，倒三角实测太小否掉）。
+   语义："钉在结构上"——6px 红点（既有"你在这里"语汇）咬合在灰色
+   空心方（方=结构）的左上角。不引入新形状，是红点与方两个既有记号
+   的第一次组合（词汇不变，出现第一个"词组"），叠压构图与氢徽同语法。
+   红色纪律备案：pinned 持续态但红点面积句读级，归入句读级红例外类。
+   ⚠️ 一屏红元素计数会因多个 pinned tab 上升，验收时实测多 pin 场景。
+   ⚠️ 选择器实测：pinned 真实结构是 .workspace-tab-header-status-icon
+   .mod-pinned（不存在 .is-pinned / .pin-icon，Phase 3 踩坑实录）。
+   svg 是 setIcon 注入的 lucide pin，CSS 改不了 path——隐藏 svg，
+   记号用 data URI background 画（与氢徽署名同工法，市场合规）。
+   几何：方 9×9 描边 1.5（Gray 400）@(5.5,5.5)；红点 r3 @(5,5)，
+   圆心压在方的左上角点上，形成对角咬合。 */
+.workspace-tab-header .workspace-tab-header-status-icon.mod-pinned svg {
+  display: none;   /* 隐藏原生 lucide pin */
 }
+.workspace-tab-header .workspace-tab-header-status-icon.mod-pinned {
+  /* v0.8.1 二修：status icon 容器原生尺寸太小，14px 背景被压缩成
+     红色小月牙（Elijah 实测截图）。显式撑容器 16px + 背景 contain；
+     灰方描边 1.5→1.75、Gray 400→500（灰 tab 底上 1.5px Gray 400 隐形）。 */
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  /* v0.8.4：方 → 空心倒三角（Elijah 拍板）。红点（你在这里）+
+     倒三角（钉入）="钉在此处"。空心描边形态小尺寸立得住
+     （初版实心倒三角失败是因为无内部细节，非形状本身问题）。 */
+  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M3.5 5.5 13.5 5.5 8.5 13Z' fill='none' stroke='%2371717A' stroke-width='1.75' stroke-linejoin='round'/><circle cx='4.5' cy='4.5' r='3.25' fill='%23D14A4A'/></svg>") no-repeat center / contain;
+  opacity: 0.85;
+  transition: opacity var(--h2-duration-fast) var(--h2-ease);
+}
+/* hover 提亮（点击此处 = 取消固定，功能保留） */
 .workspace-tab-header:hover .workspace-tab-header-status-icon.mod-pinned {
-  color: var(--h2-text-muted);
+  opacity: 1;
+}
+/* 其他 status icon（非 pinned）保持灰阶 */
+.workspace-tab-header-status-container .workspace-tab-header-status-icon:not(.mod-pinned) {
+  color: var(--h2-text-faint);
 }
 
 
@@ -2045,7 +2094,7 @@ body:not(.is-mobile) .workspace-split.mod-left-split .workspace-sidedock-vault-p
    退到 Gray 900（默认），让设置按钮的氢徽独自承担红色识别。 */
 .workspace-drawer-vault-name {
   font-family: var(--font-interface-theme);
-  font-weight: 500;
+  font-weight: 600;   /* v0.8.9：550→600（Elijah："再加一点点"） */
   background-image: none;
   padding-left: 0;
 }
@@ -2079,7 +2128,13 @@ body:not(.is-mobile) .workspace-split.mod-left-split .workspace-sidedock-vault-p
      （面积序破）、尖端 (7.5,2) 远在交叠区 y[6.5,8.5] 之外（"冒尖"丢失），
      视觉退化成一个大红三角。新版：方 9.5² > 圆 r3.5 > 三角(底8×高6.5)，
      尖端 (8.2,7) 精确落在方圆交叠区内。 */
-  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect y='6' width='10' height='10' fill='%23E4E4E7' shape-rendering='crispEdges'/><circle cx='10.5' cy='4.5' r='3.5' fill='%23D4D4D8'/><path d='M8.5 6.8 12.5 13.5 4.5 13.5Z' fill='%23D14A4A'/></svg>") no-repeat center / 16px 16px;
+  /* v0.8.8 二版：A+红点结合案（Elijah 定稿方向）——三段线做滑轨，
+     红点做滑块。三条水平灰线竖排（三段线 motif 转图标），红点骑在
+     中线偏右 = 正在被调节的值。语义具象（设置=调节），红点首次
+     获得功能叙事（当前值落点），仍是句读级一红。
+     "红点系"构词法升级：灰几何体（名词）+ 红点（动作/落点）。
+     几何：三轨 x[3,13] y=4.5/8/11.5，描边 1.75 圆帽；滑块 r2.25 @(10.5,8)。 */
+  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><g stroke='%2371717A' stroke-width='1.75' stroke-linecap='round'><line x1='3' y1='4.5' x2='13' y2='4.5'/><line x1='3' y1='8' x2='13' y2='8'/><line x1='3' y1='11.5' x2='13' y2='11.5'/></g><circle cx='10.5' cy='8' r='2.25' fill='%23D14A4A' stroke='%23FAFAFA' stroke-width='1'/></svg>") no-repeat center / 18px 18px;   /* v0.8.8 三版：16→18px（Elijah："小气了点"） */
   opacity: 0.85;
   transition: opacity var(--h2-duration-fast) var(--h2-ease);
 }
@@ -2150,6 +2205,21 @@ body:not(.is-mobile) .workspace-split.mod-root .workspace-tabs .workspace-tab-he
   background-color: transparent;
 }
 
+/* v0.8.10 ribbon 功能区去框线：最左功能区展开时右缘有明显边框
+   （Elijah 截图），违反灰线大收敛。底色融入工作台 bench
+   （半透明模式下随 token 自动变玻璃）。 */
+body:not(.is-mobile) .workspace-ribbon.mod-left {
+  border: none;
+  border-inline-end: none;
+  background-color: var(--h2-bench);
+}
+/* ribbon ::before 是标题栏段的窗口拖拽热区（-webkit-app-region:
+   drag，asar 实锤），自带 tab-outline 灰下边线——与签名红线交叠
+   （Elijah 截图）。只删线，绝不动元素本体（拖拽热区是功能）。 */
+body:not(.is-mobile) .workspace-ribbon.mod-left::before {
+  border-bottom: none;
+}
+
 /* 分屏拖拽手柄：透明化，融进呼吸缝；hover 时轻提示仍可抓 */
 body:not(.is-mobile) .workspace-leaf-resize-handle {
   background-color: transparent;
@@ -2158,6 +2228,18 @@ body:not(.is-mobile) .workspace-leaf-resize-handle {
 body:not(.is-mobile) .workspace-leaf-resize-handle:hover {
   background-color: var(--h2-gray-300);
   transition: background-color var(--h2-duration-fast) var(--h2-ease);
+}
+
+/* v0.8.10 手柄线续段：右栏拖宽手柄 hover 时，高亮线被状态栏
+   （z 15 悬浮层）挡住最后 60px——手柄困在侧栏层叠上下文（z 10）里
+   抬不过去，降状态栏又会沉到侧栏内容后。解法：:has() 联动，
+   手柄 hover 的同时状态栏在自己左缘补画同宽（3px，asar 实锤
+   --divider-width-hover）同色续段，视觉无缝接到底。
+   ⚠️ :has() 用在 .app-container 级 + 只画 box-shadow（非隐藏类
+   属性），同 S1 收起规则的 Folio 白屏规避条件。 */
+body:not(.is-mobile) .app-container:has(.workspace-split.mod-right-split > .workspace-leaf-resize-handle:hover) .status-bar {
+  box-shadow: inset 3px 0 0 var(--h2-gray-300);
+  transition: box-shadow var(--h2-duration-fast) var(--h2-ease);
 }
 
 /* 状态栏并入右侧工具带底部，不再作为独立悬浮卡片。
@@ -2173,23 +2255,25 @@ body:not(.is-mobile) {
 }
 body:not(.is-mobile) .status-bar {
   background-color: var(--h2-bench);
+  /* v0.8.6 灰线大收敛：上沿横线也退役（v0.8.5 曾恢复），状态栏
+     只靠 bench 底色成立。全界面结构线收敛到两条签名红线。 */
   border: 0;
-  border-top: 1px solid var(--h2-border);
   border-radius: 0;
-  box-shadow: none;
   bottom: 0;
   right: 0;
   width: var(--h2-status-bar-width);
-  height: 52px;
-  min-height: 52px;
-  max-height: 52px;
+  height: 60px;       /* v0.8.7：留冗余防三行裁切，与 vault 栏齐高 */
+  min-height: 60px;
+  max-height: 60px;
   overflow: hidden;
-  padding: 4px 8px;
+  padding: 3px 8px;
+  font-size: 11px;
+  line-height: 1;
   display: flex;
   flex-wrap: wrap;
   align-content: center;
   justify-content: flex-end;
-  column-gap: 4px;
+  column-gap: 2px;
   row-gap: 0;
   transition: opacity var(--h2-duration-base) var(--h2-ease),
               transform var(--h2-duration-base) var(--h2-ease);
@@ -2197,7 +2281,8 @@ body:not(.is-mobile) .status-bar {
 
 body:not(.is-mobile) .status-bar-item {
   white-space: nowrap;
-  padding: 2px 4px;
+  min-height: 20px;
+  padding: 0 2px;
 }
 
 /* 状态栏不是右栏子元素，固定 px 永远无法跟随用户 resize。
@@ -2243,11 +2328,13 @@ body:not(.is-mobile) .workspace-split.mod-sidedock {
 
 /* OS 主构造线：只保留左右工具带与内容画布的两条主边界。 */
 body:not(.is-mobile) .workspace-split.mod-left-split {
-  border-right: 1px solid var(--h2-border);
+  border-right: 0;
+  box-shadow: inset -1px 0 0 var(--h2-border);
 }
 
 body:not(.is-mobile) .workspace-split.mod-right-split {
-  border-left: 1px solid var(--h2-border);
+  border-left: 0;
+  box-shadow: inset 1px 0 0 var(--h2-border);
   anchor-name: --h2-right-dock;
 }
 
@@ -2266,9 +2353,12 @@ body:not(.is-mobile) .workspace-split.mod-sidedock .workspace-tabs ~ .workspace-
   border-top: 1px solid var(--h2-border);
 }
 
-/* 侧栏纸内 tab 头部区融入纸面 */
+/* 侧栏纸内 tab 头部区融入纸面。
+   v0.8.7：下边框也关掉——签名红线已全宽贯穿，侧栏自己的灰线
+   悬在红线上方成了双线（Elijah 截图）。 */
 body:not(.is-mobile) .workspace-split.mod-sidedock .workspace-tabs .workspace-tab-header-container {
   background-color: transparent;
+  border-bottom: none;
 }
 
 /* 工具内容与侧栏底色连续；hover/active 的 rgba 灰阶仍可见。 */
@@ -2276,13 +2366,17 @@ body:not(.is-mobile) .workspace-split.mod-sidedock .workspace-leaf-content {
   background-color: var(--h2-bench);
 }
 
-/* 侧栏与设置页隐藏滚动槽/滑块；滚轮、触控板与键盘滚动仍保留。 */
+/* 侧栏、设置页与正文区隐藏滚动槽/滑块；滚轮、触控板与键盘滚动仍保留。
+   v0.8.5：正文区（mod-root）加入——极简到极致（Elijah 拍板）。
+   ⚠️ 取舍备案：丢失滚动位置视觉指示，长文档定位靠大纲/搜索/Cmd+F。 */
 body:not(.is-mobile) .workspace-split.mod-sidedock *,
+body:not(.is-mobile) .workspace-split.mod-root *,
 .modal.mod-settings * {
   scrollbar-width: none;
 }
 
 body:not(.is-mobile) .workspace-split.mod-sidedock *::-webkit-scrollbar,
+body:not(.is-mobile) .workspace-split.mod-root *::-webkit-scrollbar,
 .modal.mod-settings *::-webkit-scrollbar {
   display: none;
   width: 0;
@@ -2366,16 +2460,18 @@ body:not(.is-mobile) .workspace-split.mod-right-split .nav-header:focus-within .
   pointer-events: auto;
 }
 
-/* vault 署名栏回到工具带底部，只保留结构分隔。 */
+/* vault 署名栏回到工具带底部。v0.8.6 灰线大收敛：上沿横线退役，
+   与状态栏对称，靠 bench 底色成立。 */
 body:not(.is-mobile) .workspace-sidedock-vault-profile {
   margin: 0;
   padding: 8px 12px;
   background-color: var(--h2-bench);
   border: 0 !important;
-  border-top: 1px solid var(--h2-border) !important;
   border-radius: 0;
   box-shadow: none;
-  min-height: 52px;
+  min-height: 60px;   /* v0.8.7：与状态栏同步增高 */
+  display: flex;
+  align-items: center;
 }
 
 /* 收起态：宽度归零时纸的 margin 不留鬼影 */
@@ -2470,16 +2566,19 @@ body:not(.is-mobile) {
   --titlebar-background-focused: var(--h2-bench);  /* focused 态同色，避免闪烁 */
 }
 
-/* ③ vault 工具带规则加压（保持足够特异性，防第三方压回卡片） */
+/* ③ vault 工具带规则加压（保持足够特异性，防第三方压回卡片）。
+   v0.8.7：border-top 灭除（v0.8.6 灰线大收敛漏掉了这份加压副本）；
+   高度 52→60 给状态区留冗余；flex 垂直居中锁定水平中轴线。 */
 body:not(.is-mobile) .workspace-split.mod-left-split .workspace-sidedock-vault-profile {
   margin: 0;
   padding: 8px 12px;
   background-color: var(--h2-bench);
   border: 0 !important;
-  border-top: 1px solid var(--h2-border) !important;
   border-radius: 0;
   box-shadow: none;
-  min-height: 52px;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
 }
 
 
@@ -2540,8 +2639,10 @@ body:not(.is-mobile) .workspace-split.mod-left-split .workspace-sidedock-vault-p
    设计：上标数字用 tabular-nums（等宽数字）+ 单字符红（AOD 红秒针语汇）。
    脚注区顶部三段线分隔。 */
 .markdown-preview-view .footnote-link,
-.markdown-preview-view sup {
-  color: var(--h2-accent);     /* 单字符红，AOD 语汇 */
+.markdown-preview-view sup.footnote-ref {
+  color: var(--h2-accent);     /* 单字符红，AOD 语汇。⚠️ 只染脚注 sup
+                                  （sup.footnote-ref），裸 sup 如数学上标
+                                  保持正文色——红色纪律 */
   font-variant-numeric: tabular-nums lining-nums;
   font-size: 0.75em;
   vertical-align: super;
@@ -2667,6 +2768,324 @@ body.theme-light {
 /* ════════════════════════════════════════════════════════════
    C 组终止线。验收点：graph view 配色（开 graph view 看节点灰阶 + 当前红）。
    C1 同步状态点 / C2 面板空态 待 asar 深挖运行时类名（JS 注入）。
+   ════════════════════════════════════════════════════════════ */
+
+
+/* ════════════════════════════════════════════════════════════
+   v0.8.1 · 愉悦时刻（Delight Moments，Marcus 直做）
+   ════════════════════════════════════════════════════════════
+   方针：纪律管常态，愉悦住事件。三个用户情绪峰值时刻各慷慨一次，
+   全部瞬态（红色纪律无恙）、全部 transform/opacity/background-size
+   （合成器友好，不触发重排）、reduced-motion 全兜底（见文件头）。
+   ──────────────────────────────────────────────────────────── */
+
+/* ── 新增 keyframes ─────────────────────────────────────────── */
+/* 墨滴落纸：红填充从圆心向外扩散（checkbox 勾选瞬间） */
+@keyframes h2-ink-spread {
+  from { background-size: 0% 0%; }
+  to   { background-size: 150% 150%; }
+}
+/* 勾号入场：墨扩散后浮现 */
+@keyframes h2-check-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+/* 开幕：三段线从中间向两侧展开（打开笔记的排面时刻） */
+@keyframes h2-unfold-x {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+/* 仪式级时长（v0.8.2）：240ms 在"一次性开幕"场景实测太快，肉眼
+   容易错过（Elijah 反馈）。常规交互仍走 fast/base/slow 三档，
+   grand 只给一次性仪式动效（开幕、氢徽入场），不给高频交互。 */
+body {
+  --h2-duration-grand: 450ms;
+  /* 签名构造线专用刷入时长与曲线（v0.8.7，Elijah 定稿方向）：
+     行程感 = 慢进（前半段缓慢蓄力）→ 过中点后鞭梢式快速收掉。
+     曲线 P1(0.75,0) 起步近水平=慢进，P2(1,0.45) 收尾近垂直=急收。
+     这是与签名曲线（快出柔落）相反的性格，专属构造线，不外借。 */
+  --h2-duration-line: 900ms;
+  --h2-ease-line: cubic-bezier(0.75, 0, 1, 0.45);
+}
+/* 落纸：氢徽元素淡入 + 轻微上浮落定 */
+@keyframes h2-badge-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── ① 完成的瞬间：checkbox 墨滴扩散 ─────────────────────────
+   red 填充从圆心向外扩散（radial-gradient + background-size 动画），
+   同时保留 h2-emerge 冒尖脉冲（两个 animation 并行）。
+   本规则在 W4 的 h2-emerge 规则之后，animation 声明合并两者
+   （后写覆盖，必须列全）。
+   ⚠️ 已知副作用（与 h2-emerge 同前例）：打开含已勾选任务的笔记时
+   动画会重放一次——挂载即播放是 CSS animation 语义，接受。 */
+/* ⚠️ 二修：初版只挂 .markdown-preview-view（阅读模式），Live Preview
+   的 checkbox 在 .markdown-source-view 里，实测没命中——补 LP 选择器。
+   LP 的 checkbox 基础样式走 Obsidian 默认（token 已接管圆形/红色），
+   这里只覆盖 background 长属性 + animation，末态与默认一致。 */
+.markdown-preview-view input[type=checkbox]:checked,
+.markdown-source-view.mod-cm6 input[type=checkbox]:checked {
+  background-color: transparent;
+  background-image: radial-gradient(circle closest-side,
+    var(--checkbox-color) 98.5%, transparent 100%);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 150% 150%;
+  animation: h2-ink-spread var(--h2-duration-base) var(--h2-ease-signature),
+             h2-emerge 150ms var(--h2-ease-signature);
+}
+/* 勾号在墨扩散后浮现（60ms 延迟，backwards 让延迟期不可见） */
+.markdown-preview-view input[type=checkbox]:checked::after,
+.markdown-source-view.mod-cm6 input[type=checkbox]:checked::after {
+  animation: h2-check-in var(--h2-duration-fast) var(--h2-ease) 60ms backwards;
+}
+
+/* ── ② 抵达的瞬间：inline title 三段线开幕 ────────────────────
+   打开笔记时排面三段线从中间向两侧展开（scaleX 0→1，签名曲线）。
+   只做 inline-title（"抵达"专属），正文 H1 三段线不动——滚动途中
+   突然展开是噪音不是开幕。切回已打开的 tab 不重放（DOM 未重挂）。 */
+.inline-title::after {
+  /* v0.8.2：升 grand 时长 + 120ms 延迟（标题先立、线再展开，
+     视线有时间落到位）。backwards 让延迟期不可见。 */
+  animation: h2-unfold-x var(--h2-duration-grand) var(--h2-ease-signature) 120ms backwards;
+  transform-origin: 50% 50%;
+}
+
+/* ── ③ 空白的瞬间：氢徽入场编舞 ──────────────────────────────
+   两拍叙事（双伪元素限制，方圆共层）：
+   第一拍 结构与日常落定（方+圆，0ms 起）；
+   第二拍 灵感冒尖（红三角，160ms 后浮出）。
+   backwards 填充让三角在延迟期完全不可见——"先有台，再冒尖"。 */
+/* v0.8.2：升 grand 时长 + 三角延迟 160→280ms（Elijah 反馈原版偏快，
+   两拍之间要有可感知的呼吸）。 */
+.workspace-leaf-content[data-type="empty"] .empty-state::before {
+  animation: h2-badge-in var(--h2-duration-grand) var(--h2-ease-signature) backwards;
+}
+.workspace-leaf-content[data-type="empty"] .empty-state::after {
+  animation: h2-badge-in var(--h2-duration-grand) var(--h2-ease-signature) 280ms backwards;
+}
+
+/* ════════════════════════════════════════════════════════════
+   v0.8.1 愉悦时刻终止线。验收：勾一个任务（墨滴+勾号浮现）、
+   打开一篇带 inline title 的笔记（三段线展开）、Cmd+N 新标签页
+   （氢徽两拍入场）。reduced-motion 下三者全部静止。
+   ════════════════════════════════════════════════════════════ */
+
+
+/* ════════════════════════════════════════════════════════════
+   v0.8.3 · 愉悦时刻第二批（Marcus 直做，选择器全部 asar 实锤）
+   ════════════════════════════════════════════════════════════
+   asar 验证记录（strings obsidian.asar，2026-07-11）：
+   .search-result-file-matched-text / .cm-searchMatch /
+   .cm-searchMatch-selected / .is-being-dragged-over /
+   .sync-status-icon.mod-success|.mod-working|.mod-error /
+   .tree-item-children —— 全部实锤，无一凭猜。
+   ──────────────────────────────────────────────────────────── */
+
+/* ── 新增 keyframes ─────────────────────────────────────────── */
+/* 扫入：高亮底从左向右扫过（"找到了"的确认感） */
+@keyframes h2-sweep-in {
+  from { background-size: 0% 100%; }
+  to   { background-size: 100% 100%; }
+}
+/* 命中闪烁：当前搜索匹配项红 tint 深一档进场再落回（无 transform，
+   inline 元素 transform 不生效，用颜色表达脉冲） */
+@keyframes h2-match-flash {
+  from { background-color: rgba(209, 74, 74, 0.35); }
+  to   { background-color: rgba(209, 74, 74, 0.18); }
+}
+/* 整屏淡入（启动签到专用） */
+@keyframes h2-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── ① 搜索命中的瞬间 ────────────────────────────────────────
+   全局搜索结果里的匹配词：红 tint 底从左向右扫入（120ms）。
+   结果列表渲染即播——用户敲字每一击都伴随一排"找到了"的轻扫。 */
+.search-result-file-matched-text {
+  background-color: transparent;
+  background-image: linear-gradient(
+    rgba(209, 74, 74, 0.14), rgba(209, 74, 74, 0.14));
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 100% 100%;
+  animation: h2-sweep-in var(--h2-duration-fast) var(--h2-ease);
+}
+
+/* 文档内搜索（Cmd+F）：当前匹配项进场时红 tint 闪一下再落定。
+   跳转到下一个匹配时 -selected 类移动到新元素，动画重放。 */
+.markdown-source-view.mod-cm6 .cm-searchMatch {
+  background-color: rgba(209, 74, 74, 0.10);
+}
+.markdown-source-view.mod-cm6 .cm-searchMatch-selected {
+  background-color: rgba(209, 74, 74, 0.18);
+  animation: h2-match-flash var(--h2-duration-slow) var(--h2-ease);
+}
+
+/* ── ② 拖入目标的瞬间（原"落下反馈"改版）─────────────────────
+   落下瞬间无状态类可挂（drop 后类即移除），改做拖入过程反馈：
+   拖文件悬停在目标文件夹上时，目标染极轻红 tint + 红 hairline
+   内描边——"这里会接住它"。红是瞬态（仅拖拽悬停期间），合法。 */
+.is-being-dragged-over {
+  background-color: rgba(209, 74, 74, 0.06) !important;
+  box-shadow: inset 0 0 0 1px var(--h2-accent);
+  border-radius: var(--radius-s);
+}
+
+/* ── ③ 同步完成的心跳 ────────────────────────────────────────
+   官方 Sync 状态图标（asar：.sync-status-icon.mod-*）。
+   working 灰、success sage + 冒尖脉冲一次、error crimson。
+   脉冲挂 svg（replaced element，transform 安全），不动容器布局。
+   圆点语义：同步状态是"圆=状态"几何语法的正统落点。 */
+.sync-status-icon.mod-working { color: var(--h2-text-faint); }
+.sync-status-icon.mod-error   { color: var(--h2-crimson); }
+.sync-status-icon.mod-success { color: var(--h2-sage); }
+.sync-status-icon.mod-success svg {
+  animation: h2-emerge 150ms var(--h2-ease-signature);
+}
+
+/* ── ④ 悬停链接的重描 ────────────────────────────────────────
+   hover 从"换色"升级成"动作"：红下划线从左向右重描一次（150ms），
+   像用红笔在链接下划了一道。工法：原生 text-decoration 退役，
+   双层 background 下划线——灰线常驻垫底，红线 hover 扫入。
+   ⚠️ 已知边界：跨行长链接的背景按整体绘制再切片，扫入在折行处
+   不完全连续——正文链接绝大多数单行，接受。tag 不参与（无下划线）。 */
+.markdown-preview-view a:not(.tag),
+.markdown-source-view.mod-cm6 .cm-link,
+.markdown-source-view.mod-cm6 .cm-url {
+  text-decoration: none;
+  background-image:
+    linear-gradient(var(--h2-accent), var(--h2-accent)),
+    linear-gradient(var(--link-decoration-color), var(--link-decoration-color));
+  background-repeat: no-repeat;
+  background-position: 0 100%, 0 100%;
+  background-size: 0% 1px, 100% 1px;
+  transition: var(--h2-transition-color),
+              background-size var(--h2-duration-fast) var(--h2-ease);
+}
+.markdown-preview-view a:not(.tag):hover,
+.markdown-source-view.mod-cm6 .cm-link:hover,
+.markdown-source-view.mod-cm6 .cm-url:hover {
+  background-size: 100% 1px, 100% 1px;
+}
+
+/* ── ⑤ 折叠展开的呼吸 ────────────────────────────────────────
+   文件树/大纲展开时子层整体 2px 上浮淡入（120ms，动画挂容器
+   .tree-item-children 一层，不逐项动画——几百项的文件夹零性能税）。
+   ⚠️ 实测点：滚动虚拟化若导致子层重挂会重放，显吵则收窄或撤。 */
+.tree-item-children {
+  animation: h2-enter-up-sm var(--h2-duration-fast) var(--h2-ease);
+}
+
+/* ── ⑥ 启动签到 ──────────────────────────────────────────────
+   Obsidian 启动第一屏整体淡入 300ms——每天一次，主题的早安。
+   挂 .app-container（启动时挂载一次，此后不重挂）。
+   ⚠️ 实测点：启动感知变慢或掉帧即删，彩蛋不值性能税。 */
+body:not(.is-mobile) .app-container {
+  animation: h2-fade-in 300ms var(--h2-ease);
+}
+
+/* ════════════════════════════════════════════════════════════
+   v0.8.3 终止线。验收：全局搜索敲字（扫入）、Cmd+F 跳匹配（闪烁）、
+   拖文件到文件夹上悬停（红 tint 接住）、Sync 完成（sage 心跳）、
+   hover 链接（红线重描）、展开文件夹（子层上浮）、重启 app（淡入）。
+   ════════════════════════════════════════════════════════════ */
+
+
+/* ════════════════════════════════════════════════════════════
+   v0.8.6 · 签名构造线（Elijah 立项）+ 灰线大收敛
+   ════════════════════════════════════════════════════════════
+   灰结构线收敛（vault 栏/状态栏上沿已退役），全界面只留两条
+   签名红线：导航栏下沿（横，开 app 左→右刷入）+ 设置页左栏右沿
+   （竖，开设置上→下刷入）。"一换主题就知道不一样"的记号。
+   工法：线画在 background-image 上（border 无法做扫入动画），
+   background-size 单轴 0→100%。选择器 asar 实锤：
+   .workspace-tab-header-container / .vertical-tab-header。
+   ──────────────────────────────────────────────────────────── */
+
+/* 横线刷入（左→右） */
+@keyframes h2-line-sweep-x {
+  from { background-size: 0% 1px; }
+  to   { background-size: 100% 1px; }
+}
+/* 竖线刷入（上→下） */
+@keyframes h2-line-sweep-y {
+  from { background-size: 1px 0%; }
+  to   { background-size: 1px 100%; }
+}
+
+/* ── 导航栏下沿签名横线 ──────────────────────────────────────
+   v0.8.7 全宽版：初版画在 tab 容器上只有正文区宽（Elijah 截图定改），
+   改画在 .workspace::after——横跨整窗（左栏→正文→右栏）。
+   垂直落点 = workspace 上 padding + 头部行高（--header-height: 40px，
+   asar 实锤），与 tab 栏下沿对齐。原 tab 容器灰线保持关闭。
+   刷入换 scaleX + transform-origin left（自有元素比 background-size 稳），
+   复用 h2-unfold-x keyframe。挂 .workspace 挂载即播 = 每次启动一次。 */
+body:not(.is-mobile) .workspace-split.mod-root .workspace-tabs .workspace-tab-header-container {
+  border-bottom: none;
+}
+body:not(.is-mobile) .workspace {
+  position: relative;
+}
+body:not(.is-mobile) .workspace::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--h2-paper-gap) + var(--header-height));
+  height: 1px;
+  background: var(--h2-line-signature);
+  pointer-events: none;
+  z-index: 10;
+  transform-origin: left center;
+  animation: h2-unfold-x var(--h2-duration-line) var(--h2-ease-line);
+}
+
+/* ── 设置页左栏右沿签名竖线 ──────────────────────────────────
+   替换设置 modal 侧栏与内容区之间的灰竖线。打开设置瞬间从上刷下。 */
+.modal.mod-settings .vertical-tab-header {
+  border-right: none;
+  background-image: linear-gradient(var(--h2-line-signature), var(--h2-line-signature));
+  background-repeat: no-repeat;
+  background-position: right top;
+  background-size: 1px 100%;
+  animation: h2-line-sweep-y var(--h2-duration-line) var(--h2-ease-line);
+}
+
+/* ── v0.8.9 半透明模式适配 ───────────────────────────────────
+   asar 实锤：.is-translucent:not(.is-fullscreen) 把 --divider-color
+   加深到 rgba(0,0,0,0.15)，并以 !important 强制 bench 底透明——
+   原被不透明底色盖住的分隔线（左右栏与正文相接处、左下角）全部
+   显形（Elijah 截图）。主题的线纪律在半透明下重申：divider 与
+   tab-outline 双双透明，结构线只留两条签名红线。 */
+body.is-translucent:not(.is-fullscreen) {
+  --divider-color: transparent;
+  --tab-outline-color: transparent;
+  /* v0.8.10 根修：官方半透明是"打孔式"——只强制 tab 头条/vault 栏/
+     ribbon 透明，我们的 bench 灰底仍盖着侧栏内容和状态栏，玻璃与
+     不透明灰底的每条拼缝都读成"线"（v0.8.9 找线删线方向错了）。
+     根修 = 消灭拼接：bench token 整体让位成玻璃，工作台隐喻升级——
+     白纸浮在毛玻璃上，只有纸是不透明的。 */
+  --h2-bench: transparent;
+}
+
+/* ── v0.8.9 侧栏工具 active 图标红固化 ───────────────────────
+   原生逻辑：active 图标的红跟随 focus，点击别处/再点一次焦点转移
+   红就消失——"我在看文件树"的状态指示忽隐忽现（Elijah 实测困惑）。
+   固化：active tab 图标常红，不随焦点闪烁。
+   红色纪律备案：归入"你在这里"导航例外类（与红点导航同类），
+   每侧栏同时只有一个 active，句读级。选择器 asar 实锤
+   （.workspace-tab-header.is-active / -inner-icon）。 */
+body:not(.is-mobile) .workspace-split.mod-sidedock .workspace-tab-header.is-active .workspace-tab-header-inner-icon svg {
+  color: var(--h2-accent);
+}
+
+/* ════════════════════════════════════════════════════════════
+   v0.8.6 终止线。验收：重启 app（导航横线左→右刷入）、打开设置
+   （左栏竖线上→下刷入）、vault 栏/状态栏无上沿灰线。
+   reduced-motion：时长走 grand token，自动归零。
    ════════════════════════════════════════════════════════════ */
 
 
@@ -3098,4 +3517,175 @@ body.is-mobile .markdown-preview-view {
    375px 窄屏标题换行 / 表格代码横滚 / modal 不超出 /
    触控目标够大 / 入场动画已关 / 状态栏已隐藏 /
    safe area 底部留白 / 氢徽不遮操作。
+   ════════════════════════════════════════════════════════════ */
+
+
+/* ════════════════════════════════════════════════════════════
+   扩展任务态 · 复选框图标（移植自 Opendian，H2 OS 灰阶适配）
+   ════════════════════════════════════════════════════════════
+   Obsidian 支持 [data-task="X"] 自定义任务标记（asar app.css 实测：
+   ul > li.task-list-item[data-task] 是官方选择器）。默认主题只渲染
+   [ ] / [x]，其他标记退回普通 checkbox。本段为 20 种扩展态渲染
+   对应 SVG 图标。
+
+   机制（与 Opendian 同源）：每条 [data-task] 规则只定义两个自定义属性
+   —— --h2-task-icon（mask URL）+ 可选 --h2-task-color。自定义属性会
+   继承到 input，两条 :checked 消费规则是唯一消费点。
+
+   H2 OS 适配三处（与 Opendian 不同）：
+   1. 灰阶纪律：Opendian 走 --text-* 三档；H2 OS 走 --h2-text/muted/faint
+      三档（Gray 900 / 500 / 400），不引入新色相。默认 [x] 仍走红填充
+      （复选框红色例外），扩展态走灰阶——20 个图标若全红会淹没界面，
+      违反"红只做点缀"纪律。
+   2. 墨滴冲突：H2 OS 的勾选墨滴动画（v0.8.1）在 input 上挂了
+      background-image: radial-gradient + animation: h2-ink-spread。mask
+      渲染需要纯 currentColor 底 + 无动画，否则渐变被 mask 裁成碎片。
+      消费规则强制 background-image: none + animation: none（!important）。
+   3. 命名：--oc-task-* → --h2-task-*（--h2-* 命名空间纪律）。
+
+   几何语法：默认 [ ] / [x] 是圆（交互语义，Phase 2 已锁）。扩展态是
+   图标符号（mask 渲染，无圆/方容器），属另一语法层——符号标记，不与
+   圆=交互 / 方=结构 冲突。
+   ──────────────────────────────────────────────────────────── */
+
+/* ── 消费规则：mask 渲染 + 关闭墨滴动画 ───────────────────────
+   三个选择器覆盖 asar 实测的全部 DOM 路径：
+   ① input 自身带 data-task（Live Preview 任务行）
+   ② li 带data-task > input（阅读模式，input 是 li 直接子元素）
+   ③ li 带data-task > p > input（阅读模式，input 嵌套在 <p> 里） */
+input:is([data-task="/"],[data-task="-"],[data-task="!"],[data-task="?"],[data-task='"'],[data-task="“"],[data-task="*"],[data-task="<"],[data-task=">"],[data-task="b"],[data-task="c"],[data-task="d"],[data-task="f"],[data-task="i"],[data-task="I"],[data-task="k"],[data-task="l"],[data-task="p"],[data-task="S"],[data-task="u"],[data-task="w"]):checked,
+li:is([data-task="/"],[data-task="-"],[data-task="!"],[data-task="?"],[data-task='"'],[data-task="“"],[data-task="*"],[data-task="<"],[data-task=">"],[data-task="b"],[data-task="c"],[data-task="d"],[data-task="f"],[data-task="i"],[data-task="I"],[data-task="k"],[data-task="l"],[data-task="p"],[data-task="S"],[data-task="u"],[data-task="w"]) > input:checked,
+li:is([data-task="/"],[data-task="-"],[data-task="!"],[data-task="?"],[data-task='"'],[data-task="“"],[data-task="*"],[data-task="<"],[data-task=">"],[data-task="b"],[data-task="c"],[data-task="d"],[data-task="f"],[data-task="i"],[data-task="I"],[data-task="k"],[data-task="l"],[data-task="p"],[data-task="S"],[data-task="u"],[data-task="w"]) > p > input:checked {
+  --checkbox-marker-color: transparent;
+  color: var(--h2-task-color, var(--h2-text-muted));
+  background-color: currentColor !important;
+  background-image: none !important;        /* 关掉墨滴 radial-gradient */
+  border-color: transparent !important;
+  border-radius: 0;
+  animation: none !important;                /* 关掉墨滴扩散 + 冒尖脉冲 */
+  -webkit-mask-image: var(--h2-task-icon);
+  mask-image: var(--h2-task-icon);
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+/* 隐藏勾号 ::after（mask 已渲染图标，原生勾号多余） */
+input:is([data-task="/"],[data-task="-"],[data-task="!"],[data-task="?"],[data-task='"'],[data-task="“"],[data-task="*"],[data-task="<"],[data-task=">"],[data-task="b"],[data-task="c"],[data-task="d"],[data-task="f"],[data-task="i"],[data-task="I"],[data-task="k"],[data-task="l"],[data-task="p"],[data-task="S"],[data-task="u"],[data-task="w"]):checked::after,
+li:is([data-task="/"],[data-task="-"],[data-task="!"],[data-task="?"],[data-task='"'],[data-task="“"],[data-task="*"],[data-task="<"],[data-task=">"],[data-task="b"],[data-task="c"],[data-task="d"],[data-task="f"],[data-task="i"],[data-task="I"],[data-task="k"],[data-task="l"],[data-task="p"],[data-task="S"],[data-task="u"],[data-task="w"]) > input:checked::after,
+li:is([data-task="/"],[data-task="-"],[data-task="!"],[data-task="?"],[data-task='"'],[data-task="“"],[data-task="*"],[data-task="<"],[data-task=">"],[data-task="b"],[data-task="c"],[data-task="d"],[data-task="f"],[data-task="i"],[data-task="I"],[data-task="k"],[data-task="l"],[data-task="p"],[data-task="S"],[data-task="u"],[data-task="w"]) > p > input:checked::after {
+  display: none;
+}
+
+/* ── 各状态图标 + 灰阶 ───────────────────────────────────────
+   灰阶三档（红色纪律：扩展态不走红，避免 20 个红图标淹没界面）：
+   - 不设 --h2-task-color → Gray 500（muted，低调标记：默认）
+   - var(--h2-text) → Gray 900（强标记：重要/星标/书签/灵感/火焰/上升/胜利/新增）
+   - var(--h2-text-faint) → Gray 400（取消态，配删除线） */
+
+[data-task="/"] {  /* 部分完成：方框 + 斜线 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Crect%20x%3D%221.1%22%20y%3D%221.1%22%20width%3D%2213.8%22%20height%3D%2213.8%22%20rx%3D%222.4%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%2F%3E%3Cpath%20d%3D%22M12.6%203.3%203.4%2012.7%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22square%22%2F%3E%3C%2Fsvg%3E");
+}
+
+[data-task="-"] {  /* 已取消：方框 + 横线 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Crect%20x%3D%221.1%22%20y%3D%221.1%22%20width%3D%2213.8%22%20height%3D%2213.8%22%20rx%3D%222.4%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%2F%3E%3Cpath%20d%3D%22M3.8%208h8.4%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.9%22%20stroke-linecap%3D%22square%22%2F%3E%3C%2Fsvg%3E");
+  --h2-task-color: var(--h2-text-faint);
+}
+
+/* 取消态文字：faint + 删除线（比完成态更弱，完成态只 faint 不删除线） */
+.markdown-rendered li[data-task="-"].task-list-item,
+.markdown-source-view.mod-cm6 .HyperMD-task-line[data-task="-"] {
+  color: var(--h2-text-faint);
+  text-decoration: line-through solid var(--h2-text-faint) 1px;
+}
+
+[data-task=">"] {  /* 改期 / 推迟：右箭头 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M3.5%208h8%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22square%22%2F%3E%3Cpath%20d%3D%22m8.5%204.5%203.5%203.5-3.5%203.5%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%2F%3E%3C%2Fsvg%3E");
+}
+
+[data-task="<"] {  /* 排期：日历角标 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Crect%20x%3D%223%22%20y%3D%224%22%20width%3D%2210%22%20height%3D%229%22%20rx%3D%221.5%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.4%22%2F%3E%3Cpath%20d%3D%22M5%202.8v3M11%202.8v3M3.5%207h9%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.2%22%20stroke-linecap%3D%22square%22%2F%3E%3C%2Fsvg%3E");
+}
+
+[data-task="?"] {  /* 待确认：问号 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M5.1%205.5c.15-2%201.55-3.3%203.45-3.3%202.05%200%203.45%201.25%203.45%203.05%200%201.55-.95%202.35-2.2%203.05-1%20.56-1.35%201-1.35%202.2%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%2F%3E%3Ccircle%20cx%3D%228.45%22%20cy%3D%2213.1%22%20r%3D%221.15%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+  --h2-task-color: var(--h2-text);
+}
+
+[data-task="!"] {  /* 重要：叹号 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M7.05%202.1h1.9l-.28%208.1H7.33L7.05%202.1Z%22%20fill%3D%22black%22%2F%3E%3Ccircle%20cx%3D%228%22%20cy%3D%2213%22%20r%3D%221.2%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+  --h2-task-color: var(--h2-text);
+}
+
+[data-task="*"] {  /* 收藏：五角星 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22m8%201.8%201.7%204.1%204.4.3-3.3%202.9%201%204.3L8%2011.1l-3.8%202.3%201-4.3-3.3-2.9%204.4-.3L8%201.8Z%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+  --h2-task-color: var(--h2-text);
+}
+
+[data-task='"'],  /* 引用：书名号（直引号 + 弯引号同规则） */
+[data-task="“"] {
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M4.5%205.1h3v3.1c0%202.2-1%203.5-3%204.2v-1.6c.9-.4%201.3-1%201.4-1.9H4.5V5.1Zm5.1%200h3v3.1c0%202.2-1%203.5-3%204.2v-1.6c.9-.4%201.3-1%201.4-1.9H9.6V5.1Z%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+[data-task="l"] {  /* 位置：图钉 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2014s4-4.4%204-7.3a4%204%200%200%200-8%200C4%209.6%208%2014%208%2014Z%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%2F%3E%3Ccircle%20cx%3D%228%22%20cy%3D%226.7%22%20r%3D%221.45%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+[data-task="b"] {  /* 书签 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M4.5%202.5h7v11L8%2011.4l-3.5%202.1v-11Z%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+  --h2-task-color: var(--h2-text);
+}
+
+[data-task="i"] {  /* 信息提示 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%225.5%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.4%22%2F%3E%3Ccircle%20cx%3D%228%22%20cy%3D%225.3%22%20r%3D%220.9%22%20fill%3D%22black%22%2F%3E%3Cpath%20d%3D%22M8%207.2v4%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.6%22%20stroke-linecap%3D%22square%22%2F%3E%3C%2Fsvg%3E");
+}
+
+[data-task="S"] {  /* 金钱 / 预算：$ */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Ccircle%20cx%3D%228%22%20cy%3D%228%22%20r%3D%225.4%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.3%22%2F%3E%3Cpath%20d%3D%22M8%203.9v8.2M10.4%205.3C9.8%204.8%209%204.5%208.1%204.5c-1.3%200-2.3.6-2.3%201.7%200%201.2%201.2%201.5%202.4%201.8%201.2.3%202.3.6%202.3%201.8s-1.1%201.8-2.5%201.8c-1%200-1.9-.3-2.6-1%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.25%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%2F%3E%3C%2Fsvg%3E");
+}
+
+[data-task="I"] {  /* 灵感：灯泡 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M5.2%207a2.8%202.8%200%201%201%205.6%200c0%201-.45%201.45-1.05%202.05-.4.4-.65.78-.65%201.35H6.9c0-.57-.25-.95-.65-1.35C5.65%208.45%205.2%208%205.2%207Z%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linejoin%3D%22round%22%2F%3E%3Cpath%20d%3D%22M6.65%2012h2.7M7.2%2014h1.6%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%2F%3E%3C%2Fsvg%3E");
+  --h2-task-color: var(--h2-text);
+}
+
+[data-task="f"] {  /* 紧急：火焰 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8.4%201.8c.3%202.3%202.8%203.2%202.8%206.2a3.9%203.9%200%200%201-7.8%200c0-2%201.2-3.4%202.4-4.4-.1%201.8.8%202.7%201.5%203.2.4-1.3.2-3.3%201.1-5Z%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+  --h2-task-color: var(--h2-text);
+}
+
+[data-task="k"] {  /* 关键 / 凭据：钥匙 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Ccircle%20cx%3D%225.8%22%20cy%3D%226.3%22%20r%3D%222.6%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%2F%3E%3Cpath%20d%3D%22m7.7%208.2%205%205M10.2%2010.7l1.5-1.5M11.7%2012.2l1.3-1.3%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22square%22%2F%3E%3C%2Fsvg%3E");
+}
+
+[data-task="u"] {  /* 上升：趋势图 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M3%2011.5%206.5%208l2.2%202.2L13%205.9%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.65%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%2F%3E%3Cpath%20d%3D%22M9.3%205.7H13v3.7%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.65%22%20stroke-linecap%3D%22square%22%2F%3E%3C%2Fsvg%3E");
+  --h2-task-color: var(--h2-text);
+}
+
+[data-task="d"] {  /* 下降：趋势图 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M3%204.5%206.5%208l2.2-2.2L13%2010.1%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.65%22%20stroke-linecap%3D%22square%22%20stroke-linejoin%3D%22miter%22%2F%3E%3Cpath%20d%3D%22M9.3%2010.3H13V6.6%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.65%22%20stroke-linecap%3D%22square%22%2F%3E%3C%2Fsvg%3E");
+}
+
+[data-task="w"] {  /* 胜利：奖杯 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20fill%3D%22black%22%20fill-rule%3D%22evenodd%22%20d%3D%22M2.3%2013.2h11.4l.55-8.2-3.75%203.15L8%202.6%205.5%208.15%201.75%205l.55%208.2Zm2.15-2h7.1l.22-2.9-1.95%201.65L8%205.9%206.18%209.95%204.23%208.3l.22%202.9Z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E");
+  --h2-task-color: var(--h2-text);
+}
+
+[data-task="p"] {  /* 新增：加号 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2210%22%20height%3D%2210%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.4%22%2F%3E%3Cpath%20d%3D%22M8%205v6M5%208h6%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22square%22%2F%3E%3C%2Fsvg%3E");
+  --h2-task-color: var(--h2-text);
+}
+
+[data-task="c"] {  /* 折叠：减号 */
+  --h2-task-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2210%22%20height%3D%2210%22%20rx%3D%222%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.4%22%2F%3E%3Cpath%20d%3D%22M5%208h6%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22square%22%2F%3E%3C%2Fsvg%3E");
+}
+
+/* ════════════════════════════════════════════════════════════
+   扩展任务态终止线。验收：01-02 列表与任务.md 的 22 种任务态全部
+   渲染对应图标（阅读模式 + Live Preview），灰阶三档清晰，
+   取消态文字删除线，默认 [x] 仍是红圆 + 墨滴动画（不受影响）。
    ════════════════════════════════════════════════════════════ */

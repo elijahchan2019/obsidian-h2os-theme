@@ -15,6 +15,20 @@
 - **Hydrogen window** — an empty-state geometric composition as a quiet signature moment.
 - **Modernized execution** — H2OS's discipline preserved, its 2015-era execution redone at 2026 precision.
 
+## The Hydrogen Mark
+
+The theme's emblem, built from the three geometric atoms in a fixed relationship. **It is not decoration — it is a diagram of the theme's idea:**
+
+> **The square is structure** — your notes, your vault, the foundation that carries everything, so it is largest and most still.
+> **The circle is the everyday** — every click, every check, every turn through the library; it sits on the structure and remains gray.
+> **The triangle is inspiration** — the smallest, yet the only red, its tip rising from where structure and everyday **overlap**.
+>
+> In one line: **structure carries, the everyday flows, inspiration peaks.** Red is reserved for that single moment of emergence — the mark's story and the theme's red discipline are the same sentence.
+
+Three rules govern every redraw (equivalent to logo usage guidelines): area order square > circle > triangle; the triangle's tip must sit inside the square-circle overlap; red belongs to the triangle alone.
+
+The full mark lives in the empty-tab hydrogen window; a compact 24px variant appears beside the settings dialog title, and a 12px micro variant (square + red tip) signs the vault name in the lower-left dock.
+
 ## Installation
 
 Not yet on the community theme browser. For now, manual install by placing `theme.css` and `manifest.json` in:

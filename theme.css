@@ -288,11 +288,18 @@ body.theme-light {
   --nav-indentation-guide-color:        rgba(82, 82, 91, 0.10);
 
   /* 标签：圆角胶囊，轻 tint 背景 */
-  --tag-background:        var(--h2-gray-100);
-  --tag-background-hover:  var(--h2-gray-200);
+  /* v1.2 方形结构片：去胶囊——0 圆角 + hairline 描边 + 透明底。
+     tag 是元数据结构件，归"方"；从"彩色胶囊"退成"小号的方"，
+     与表格/嵌入框同语言。属性区 --pill-* token 全部回落到
+     --tag-*（asar 实锤），此处一改两得。 */
+  --tag-background:        transparent;
+  --tag-background-hover:  transparent;
   --tag-color:             var(--h2-text-body);
   --tag-color-hover:       var(--h2-text);
-  --tag-radius:            var(--radius-s);
+  --tag-radius:            0;
+  --tag-border-width:      1px;
+  --tag-border-color:      var(--h2-border);
+  --tag-border-color-hover: var(--h2-gray-400);
 
   /* 滑块 */
   --slider-track-background:   var(--h2-gray-200);
@@ -366,7 +373,15 @@ body.theme-light {
   /* 表格 hairline（直角路线生命线，1px 一致） */
   --table-header-border:    1px solid var(--h2-border);
   --table-border-width:     0px;     /* 关掉单元格内框，hairline 由主题显式画 */
-  --table-header-background: var(--h2-gray-50);
+  --table-header-background: transparent;   /* v1.2 表头标签式：去灰底 */
+  /* v1.2 官方 token 层同步接管：LP 表格编辑器（.cm-table-widget）的
+     字号/行高/表头字形走这些 token，光写 td/th 规则编辑态接不住 */
+  --table-text-size:        0.875rem;             /* 14px 密度档 */
+  --table-line-height:      1.45;
+  --table-header-size:      0.75rem;              /* 12px 标签档 */
+  --table-header-weight:    500;
+  --table-header-color:     var(--h2-text-muted);
+  --table-row-background-hover: var(--h2-gray-50);
 
   /* Blockquote：中性 rail，去掉默认蓝 */
   --blockquote-border-thickness: 3px;
@@ -800,12 +815,11 @@ h5, h6 {
   text-decoration-color: var(--link-unresolved-decoration-color);
 }
 
-/* ── 标签（tag）───────────────────────────────────────────────
-   圆角胶囊（圆形语义，--radius-s = 4px，胶囊感靠 padding 撑）。
-   轻 tint 灰底，不抢戏。hover 加深一档。
+/* ── 标签（tag）· v1.2 方形结构片 ─────────────────────────────
+   0 圆角 + 1px hairline 描边 + 透明底。tag 从"彩色胶囊"变成
+   "小号的方"，与表格外框/嵌入框同语言。hover 描边加深、文字回深。
    ──────────────────────────────────────────────────────────── */
-.markdown-preview-view a.tag,
-.markdown-source-view.mod-cm6 .cm-hashtag {
+.markdown-preview-view a.tag {
   background: var(--tag-background);
   color: var(--tag-color);
   border-radius: var(--tag-radius);
@@ -813,35 +827,59 @@ h5, h6 {
   font-size: 0.875em;
   font-weight: 500;
   text-decoration: none;
-  border: 1px solid transparent;
+  border: var(--tag-border-width) solid var(--tag-border-color);
   transition: var(--h2-transition-color);
 }
-
-.markdown-preview-view a.tag:hover,
-.markdown-source-view.mod-cm6 .cm-hashtag:hover {
-  background: var(--tag-background-hover);
+.markdown-preview-view a.tag:hover {
   color: var(--tag-color-hover);
-  border-color: var(--h2-border);
+  border-color: var(--tag-border-color-hover);
 }
 
-/* Live Preview：Obsidian 把 hashtag 拆成 begin/end/middle，需统一处理 */
-.markdown-source-view.mod-cm6 .cm-hashtag-begin {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-  padding-left: 0.5rem;
-  padding-right: 0;
-}
-.markdown-source-view.mod-cm6 .cm-hashtag-end {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  padding-left: 0;
-  padding-right: 0.5rem;
-}
-.markdown-source-view.mod-cm6 .cm-hashtag-begin,
-.markdown-source-view.mod-cm6 .cm-hashtag-middle,
-.markdown-source-view.mod-cm6 .cm-hashtag-end {
+/* Live Preview 分段缝合：Obsidian 把一枚 tag 拆成相邻兄弟 span——
+   .cm-hashtag-begin（#）+ 0..n 个中段 + .cm-hashtag-end（正文）。
+   要读成"一枚方"：横边（上下 hairline）人人有，竖边只给两端
+   （begin 左边、end 右边），中段与内侧接缝 0 padding 0 边，
+   否则每段各画一圈就是截图里"#╱正文"两枚断片。
+   # 号退 faint——记号是句读，正文才是内容。 */
+.markdown-source-view.mod-cm6 .cm-hashtag {
   background: var(--tag-background);
   color: var(--tag-color);
+  border-radius: 0;
+  border-top: var(--tag-border-width) solid var(--tag-border-color);
+  border-bottom: var(--tag-border-width) solid var(--tag-border-color);
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
+  padding-left: 0;
+  padding-right: 0;
+  font-size: 0.875em;
+  font-weight: 500;
+  transition: var(--h2-transition-color);
+}
+.markdown-source-view.mod-cm6 .cm-hashtag.cm-hashtag-begin {
+  border-left: var(--tag-border-width) solid var(--tag-border-color);
+  padding-left: 0.5rem;
+  color: var(--h2-text-faint);   /* # 是句读，退 faint */
+}
+.markdown-source-view.mod-cm6 .cm-hashtag.cm-hashtag-end {
+  border-right: var(--tag-border-width) solid var(--tag-border-color);
+  padding-right: 0.5rem;
+}
+
+/* 原子 hover：一枚 tag 是一个交互单元，悬停任一段整枚同亮。
+   分段是相邻兄弟：向后用 + 链、向前用 :has()；
+   :not(.cm-hashtag-begin) 挡住链条串进同一行的下一枚 tag
+   （下一枚永远以 begin 开头）。覆盖到 4 段（begin+2 中段+end）。 */
+.markdown-source-view.mod-cm6 :is(
+  .cm-hashtag:hover,
+  .cm-hashtag:hover + .cm-hashtag:not(.cm-hashtag-begin),
+  .cm-hashtag:hover + .cm-hashtag:not(.cm-hashtag-begin) + .cm-hashtag:not(.cm-hashtag-begin),
+  .cm-hashtag:hover + .cm-hashtag:not(.cm-hashtag-begin) + .cm-hashtag:not(.cm-hashtag-begin) + .cm-hashtag:not(.cm-hashtag-begin),
+  .cm-hashtag:has(+ .cm-hashtag:not(.cm-hashtag-begin):hover),
+  .cm-hashtag:has(+ .cm-hashtag:not(.cm-hashtag-begin) + .cm-hashtag:not(.cm-hashtag-begin):hover),
+  .cm-hashtag:has(+ .cm-hashtag:not(.cm-hashtag-begin) + .cm-hashtag:not(.cm-hashtag-begin) + .cm-hashtag:not(.cm-hashtag-begin):hover)
+) {
+  color: var(--tag-color-hover);
+  border-color: var(--tag-border-color-hover);
 }
 
 
@@ -858,6 +896,10 @@ h5, h6 {
    不做纯三线表——三线表是 Folio v1.3.0 招牌，三作各占一个形态；
    更根本是几何语义："方"要成立得有闭合矩形轮廓，只剩横线读不出"方"。
    表头分隔线 + 外圈 hairline + 无竖线 + 0 圆角。
+   v1.2 密度改版：字号 15→14px、行高 1.5→1.45、padding 8/12→6/10，
+   一屏约多容 20–25% 行数；密度的配套安全网是行 hover。
+   宽度纪律（Folio 同源）：fit-content 贴内容宽 + max-width 兜底，
+   长内容 break-word 断行、链接 anywhere 防长 URL 撑爆列宽。
    ──────────────────────────────────────────────────────────── */
 .markdown-preview-view table,
 .markdown-source-view.mod-cm6 .cm-table-widget table {
@@ -865,32 +907,82 @@ h5, h6 {
   border-radius: 0;            /* 方形语义 */
   border: 1px solid var(--h2-border);   /* 外圈闭合轮廓 = "方" */
   background: var(--h2-bg);
-  font-size: 0.9375rem;        /* 15px，4px 网格 —— 表格紧凑一档 */
-  line-height: 1.5;
+  font-size: 0.875rem;         /* 14px —— 信息密度档 */
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;   /* 等宽数字，同列竖向对齐 */
+  width: fit-content;          /* 贴内容宽，不平铺整行 */
+  max-width: 100%;             /* 永不溢出正文列 */
 }
 
-/* 单元格：无内框（关掉 Obsidian 默认竖线/横线），padding 落 4px 网格 */
+/* LP 表格容器：同款宽度约束 + 取消官方负边距，对齐段落左缘 */
+.markdown-source-view.mod-cm6 .cm-table-widget {
+  width: fit-content;
+  max-width: 100%;
+  margin-inline-start: 0;
+}
+
+/* 单元格：无内框（关掉 Obsidian 默认竖线/横线），padding 落 4px 网格半格 */
 .markdown-preview-view table td,
 .markdown-preview-view table th,
 .markdown-source-view.mod-cm6 .cm-table-widget table td,
 .markdown-source-view.mod-cm6 .cm-table-widget table th {
   border: 0;                   /* 关掉所有内框，由主题显式画 hairline */
-  padding: 0.5rem 0.75rem;     /* 8px 12px，4px 网格 */
+  padding: 0.375rem 0.625rem;  /* 6px 10px，半格规则内 */
   text-align: left;
+  word-break: break-word;      /* 超长内容在词边界断行，不撑爆列宽 */
 }
 
-/* 表头：加粗 + 底色 + 底部 hairline 分隔 */
+/* 单元格内链接：长 URL 允许任意处断行 */
+.markdown-preview-view table td a,
+.markdown-source-view.mod-cm6 .cm-table-widget table td a {
+  overflow-wrap: anywhere;
+}
+
+/* LP 编辑态：padding 不在 td 上，在内层 .table-cell-wrapper（asar：
+   官方 padding: var(--size-2-2) var(--size-4-2)）。td 归零防双份，
+   数值搬到 wrapper——两个视图态一个尺寸。 */
+.markdown-source-view.mod-cm6 .cm-table-widget table td,
+.markdown-source-view.mod-cm6 .cm-table-widget table th {
+  padding: 0;
+}
+.markdown-source-view.mod-cm6 .cm-table-widget td .table-cell-wrapper {
+  padding: 0.375rem 0.625rem;   /* 6px 10px，与阅读模式一致 */
+}
+.markdown-source-view.mod-cm6 .cm-table-widget th .table-cell-wrapper {
+  padding: 0.25rem 0.625rem;    /* 表头矮一档，与阅读模式一致 */
+}
+
+/* 表头标签式：复用 H6 形态语言（小字号 + 全大写 + 宽字距 + muted），
+   去灰底——表头从"一行加粗内容"退成"一排安静的标签"，
+   内容行成为主角，顺带比灰底表头矮一档 */
 .markdown-preview-view table th,
 .markdown-source-view.mod-cm6 .cm-table-widget table th {
-  font-weight: 600;
-  background: var(--table-header-background);
+  font-weight: 500;
+  font-size: 0.75rem;          /* 12px 标签档 */
+  text-transform: uppercase;
+  letter-spacing: 0.06em;      /* 与 H6 同款宽字距 */
+  color: var(--h2-text-muted);
+  background: transparent;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;     /* 4px——表头是标签不是内容，更矮 */
   border-bottom: 1px solid var(--h2-border);   /* 表头分隔 hairline */
 }
 
-/* 行间横线：极轻，只在 hover 时不显示，避免斑马感 */
+/* 行间横线：极轻，避免斑马感 */
 .markdown-preview-view table tbody tr,
 .markdown-source-view.mod-cm6 .cm-table-widget table tbody tr {
   border-top: 1px solid var(--h2-border);
+}
+
+/* 行 hover：极轻灰 tint——密度提高后横向追行的安全网。
+   持续态用灰阶不用红（红色纪律） */
+.markdown-preview-view table tbody tr,
+.markdown-source-view.mod-cm6 .cm-table-widget table tbody tr {
+  transition: background-color var(--h2-duration-fast) var(--h2-ease);
+}
+.markdown-preview-view table tbody tr:hover,
+.markdown-source-view.mod-cm6 .cm-table-widget table tbody tr:hover {
+  background-color: var(--h2-gray-50);
 }
 
 /* ── Checkbox（圆形：未完成/完成两态，选中红填充）──────────────
@@ -2971,6 +3063,31 @@ body {
   background-size: 100% 1px, 100% 1px;
 }
 
+/* 原生下划线彻底退役（asar 实锤两处漏网）：
+   ① LP 链接文字的内层 span .cm-underline 自带
+      text-decoration-line: var(--link-decoration)，外层渐变线
+      +内层原生线 = 双下划线；
+   ② 阅读模式外链走独立 token --link-external-decoration。 */
+.markdown-source-view.mod-cm6 .cm-link .cm-underline,
+.markdown-source-view.mod-cm6 .cm-url .cm-underline {
+  text-decoration: none;
+}
+body {
+  --link-external-decoration: none;
+  --link-external-decoration-hover: none;
+}
+
+/* 外链箭头位收回：官方箭头画在 background-image 上，已被双渐变
+   覆盖（去箭头符合减法路线），但 padding-inline-end: 0.9em 的
+   图标位还在——渐变背景铺满 padding，灰线比文字长一截、hover
+   红线也铺过去。位随箭头一起退役，线与文字齐宽。
+   ⚠️ .external-link 的 padding 规则是模式无关的：LP 渲染出的
+   链接 span 同样挂 .external-link 类，两个视图态都要收。 */
+.markdown-preview-view a.external-link,
+.markdown-source-view.mod-cm6 .external-link {
+  padding-inline-end: 0;
+}
+
 /* ── ⑤ 折叠展开的呼吸 ────────────────────────────────────────
    文件树/大纲展开时子层整体 2px 上浮淡入（120ms，动画挂容器
    .tree-item-children 一层，不逐项动画——几百项的文件夹零性能税）。
@@ -3087,6 +3204,52 @@ body:not(.is-mobile) .workspace-split.mod-sidedock .workspace-tab-header.is-acti
    （左栏竖线上→下刷入）、vault 栏/状态栏无上沿灰线。
    reduced-motion：时长走 grand token，自动归零。
    ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   v1.2 覆盖缺口清偿：Tooltip + View Header
+   两处发版前挂起的"出戏回官方"面。选择器与默认值均 asar 实锤。
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Tooltip（asar：.tooltip / .tooltip-arrow，bg 走
+   --background-modifier-message: rgba(0,0,0,0.9)，radius-s 圆角）──
+   改造：底色收编到 Gray 900（灰阶体系内，不再是通用纯黑半透明）、
+   0 圆角（方形语义——tooltip 是结构说明，归"方"）、阴影减淡一档。
+   箭头颜色走同一个 token，改 token 一处两得。
+   入场动画保留官方 pop-down（transient、200ms，符合动效分寸）。 */
+body {
+  --background-modifier-message: var(--h2-gray-900);
+}
+.tooltip {
+  border-radius: 0;
+  box-shadow: 0 2px 8px rgba(24, 24, 27, 0.15);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  padding: 0.25rem 0.5rem;      /* 4px 8px，4px 网格 */
+}
+
+/* ── View Header（asar：.view-header 高度 --header-height，
+   bg/border 走 --file-header-* token，默认 border transparent）──
+   默认关闭（show-view-header off）时不渲染；开启后要求：
+   ① 底色随纸面（--h2-bg），不引入新层；② 无下沿线——水平结构线
+   只允许签名红线一条（灰线大收敛纪律）；③ 标题走 muted 小字 +
+   面包屑分隔符退 faint，作为"呼吸位"不与正文标题争重量。 */
+body {
+  --file-header-background: var(--h2-bg);
+  --file-header-background-focused: var(--h2-bg);
+  --file-header-border: 1px solid transparent;
+  --file-header-font-size: 0.8125rem;
+  --file-header-font-weight: 500;
+}
+.view-header-title {
+  color: var(--h2-text-muted);
+}
+.view-header-breadcrumb,
+.view-header-breadcrumb-separator {
+  color: var(--h2-text-faint);
+}
+.view-header-breadcrumb:hover {
+  color: var(--h2-text);
+}
 
 
 /* ════════════════════════════════════════════════════════════
@@ -3302,11 +3465,12 @@ body:not(.is-mobile) .workspace-split.mod-sidedock .workspace-tab-header.is-acti
     break-inside: avoid;
   }
 
-  /* ── 12. 标签 tag：胶囊底色清零 ─────────────────────────────
-     屏幕端 tag 有灰底胶囊（圆形语义），打印里底色费墨且无意义，
-     清零成纯文本 + faint 色。 */
+  /* ── 12. 标签 tag：描边清零 ─────────────────────────────────
+     屏幕端 tag 是方形结构片（hairline 描边），打印里退成
+     纯文本 + faint 色，不画小方框。 */
   & .print .markdown-preview-view a.tag {
     background: transparent !important;
+    border: none !important;
     color: var(--h2-gray-500) !important;
     padding: 0 !important;
     text-decoration: none !important;

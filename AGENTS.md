@@ -204,6 +204,13 @@ Opendian sidebar-debug 的真实例子：`position: absolute` 解耦、负 margi
 - hairline 一致性、4px 网格、字重层级是否失守（直角路线零容忍）。
 - **如果要发版**：bump version 后打 tag（无 v 前缀，== version）并 `git push origin main --tags`，workflow 自动接管（见下）。
 
+### 版本号升哪一位（Elijah 裁决，2026-07-12）
+
+- **patch（x.y.Z）**：默认档。bug 修复、视觉调优（密度/颜色/间距/单组件重画）、覆盖缺口补齐。
+- **minor（x.Y.0）**：设计语言层面的新增或改变——新的签名元素、新的交互范式、空间结构重设计（如连续画布这种量级）。
+- **major（X.0.0）**：只在 Elijah 明确拍板时用。
+- **拿不准就 patch**；升 minor/major 前先问 Elijah。教训：1.2.0 实际内容是表格调优 + tag 重画 + 链接 bug 修，本应是 1.1.1。
+
 > ⚠️ **别被 `versions.json` 误导。** 主题（theme）根本不读它——那是插件概念。留着无害，但**不要**把"同步 versions.json"当成发版必做项。
 
 ---

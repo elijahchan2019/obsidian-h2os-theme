@@ -1944,6 +1944,13 @@ body:not(.is-mobile) input[type=range]:focus-visible::-webkit-slider-thumb {
    primary 保持 Obsidian 默认（accent 实心是合法红——按钮是瞬态交互，
    非持续态）。完整重做留到验收后看是否需要。
    token 定义在 Phase 0 token 层（body.theme-light 内）。 */
+button.mod-cta {
+  box-shadow: none;   /* 去掉继承自普通 button 的灰色 inset，避免红按钮四角露灰弧 */
+}
+button.mod-cta:hover,
+button.mod-cta.mobile-tap {
+  box-shadow: none;
+}
 
 
 /* ── Toggle（圆角矩形开关，跟随几何语法）──────────────────────

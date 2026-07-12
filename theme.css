@@ -2331,8 +2331,8 @@ body:not(.is-mobile) .status-bar {
   min-height: 60px;
   max-height: 60px;
   overflow: hidden;
-  padding: 3px 8px;
-  font-size: 11px;
+  padding: 4px 8px;
+  font-size: 10px;
   line-height: 1;
   display: flex;
   flex-wrap: wrap;

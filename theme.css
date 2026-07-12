@@ -2009,41 +2009,14 @@ body:not(.is-mobile) input[type=range]:focus-visible::-webkit-slider-thumb {
   animation: h2-enter-up-sm var(--h2-duration-base) var(--h2-ease-signature);
 }
 
-/* ── 窗楣三段线（迷你版）──────────────────────────────────────
-   氢视窗的标识——"这是一扇氢视窗"。inline title 下的三段线是排面级（35/65），
-   这里是迷你版（间隙收窄到 30/40/30）。用 ::before 伪元素画在容器顶部。
-   落点：modal（设置页/对话框）顶部 + popover（hover 预览）顶部。
-   ⚠️ 不画在 menu/prompt/suggestion——它们是动作菜单不是"窗"，加窗楣语义错。 */
-.modal::before,
-.popover::before {
-  content: '';
-  display: block;
-  height: 1px;
-  margin: 0.5rem 1rem;          /* 8px 16px，4px 网格 —— 窗楣上下留白 */
-  background: linear-gradient(
-    to right,
-    var(--h2-border) 0 30%, transparent 30% 33%,
-    var(--h2-border) 33% 67%, transparent 67% 70%,
-    var(--h2-border) 70% 100%
-  );
-}
-
-/* 设置页已有 Modal 外框 + 左右主分界，不再叠加顶部三段窗楣。 */
-.modal.mod-settings::before {
-  display: none;
-}
-
-/* ── Menu 分组分隔线 → 三段线迷你版 ───────────────────────────
-   asar 实测 .menu-separator 是菜单分组分隔线。换成三段线，
-   让右键菜单也是"氢视窗"的延伸。 */
+/* ── 窗楣三段线（迷你版）· v1.2 退役 ──────────────────────────
+   曾画在 modal / popover 顶部 + menu 分组分隔（30/40/30 迷你版）。
+   Elijah 裁决：界面 chrome 里的三段线是噪音——哲学元素只在正文
+   排面出场（inline title / hr / 脚注区 / 空状态），chrome 保持安静。
+   menu 分组分隔退回官方 hairline。 */
 .menu .menu-separator {
   height: 1px;
-  background: linear-gradient(
-    to right,
-    var(--h2-border) 0 30%, transparent 30% 33%,
-    var(--h2-border) 33% 67%, transparent 67% 70%,
-    var(--h2-border) 70% 100%
-  );
+  background: var(--h2-border);
   margin: 0.25rem 0.5rem;        /* 4px 8px，4px 网格 */
   border: none;
 }

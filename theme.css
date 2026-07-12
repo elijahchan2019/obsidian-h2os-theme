@@ -530,9 +530,18 @@ body.theme-light {
   body .search-result-file-matched-text,
   body .cm-searchMatch-selected,
   body .sync-status-icon.mod-success svg,
+  body .workspace-tab-header-status-icon.mod-pinned,
+  body .markdown-preview-view button.copy-code-button:active,
+  body .markdown-preview-view .footnote:target,
+  body .markdown-preview-view .footnotes li:target,
+  body .markdown-preview-view blockquote:target,
+  body .markdown-preview-view [id^='^']:target,
   body .tree-item-children,
   body .app-container {
     animation: none !important;
+  }
+  body input[type='range']::-webkit-slider-thumb:active {
+    transform: none !important;
   }
 }
 
@@ -730,6 +739,17 @@ h5, h6 {
   padding: 1rem;   /* 16px，4px 网格 */
   margin-block-start: 1rem;
   margin-block-end: 1rem;
+}
+
+/* 代码块复制按钮：asar 实测类名 .copy-code-button。Obsidian 点击后
+   不挂 copied 状态类，CSS 无法判断剪贴板结果；这里只做按下瞬间确认。 */
+.markdown-preview-view button.copy-code-button {
+  transition: color var(--h2-duration-fast) var(--h2-ease),
+              background-color var(--h2-duration-fast) var(--h2-ease);
+}
+.markdown-preview-view button.copy-code-button:active {
+  color: var(--h2-accent);
+  animation: h2-emerge 150ms var(--h2-ease-signature);
 }
 
 .markdown-preview-view pre code,
@@ -1551,6 +1571,7 @@ h5, h6 {
      （初版实心倒三角失败是因为无内部细节，非形状本身问题）。 */
   background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path d='M3.5 5.5 13.5 5.5 8.5 13Z' fill='none' stroke='%2371717A' stroke-width='1.75' stroke-linejoin='round'/><circle cx='4.5' cy='4.5' r='3.25' fill='%23D14A4A'/></svg>") no-repeat center / contain;
   opacity: 0.85;
+  animation: h2-emerge 150ms var(--h2-ease-signature);
   transition: opacity var(--h2-duration-fast) var(--h2-ease);
 }
 /* hover 提亮（点击此处 = 取消固定，功能保留） */
@@ -1869,7 +1890,8 @@ input[type='range']::-webkit-slider-thumb {
   background: var(--h2-accent);          /* Red 500 —— AOD 红秒针语汇 */
   border: none;                          /* 去掉灰边框，红点纯净 */
   box-shadow: none;                      /* 去掉默认散阴影 */
-  transition: background var(--h2-duration-fast) var(--h2-ease);
+  transition: background var(--h2-duration-fast) var(--h2-ease),
+              transform var(--h2-duration-fast) var(--h2-ease);
 }
 
 /* slider thumb hover：加深到 Red 600（瞬态，合法红） */
@@ -1878,6 +1900,9 @@ input[type='range']::-webkit-slider-thumb:active {
   background: var(--h2-accent-hover);    /* Red 600 */
   border-color: transparent;
   box-shadow: none;
+}
+input[type='range']::-webkit-slider-thumb:active {
+  transform: scale(1.15);
 }
 
 /* slider focus：Gray 400 圈（红不做持续态，与 input focus 同纪律） */
@@ -2742,6 +2767,16 @@ body:not(.is-mobile) .workspace-split.mod-left-split .workspace-sidedock-vault-p
     var(--h2-border) 33% 67%, transparent 67% 70%,
     var(--h2-border) 70% 100%
   );
+}
+
+/* 跳转落点：脚注 / 引用块 / block reference 命中时轻闪一下。
+   复用搜索命中 h2-match-flash，不新增 keyframe；:target 来自浏览器
+   hash 跳转，属于明确事件层反馈。 */
+.markdown-preview-view .footnote:target,
+.markdown-preview-view .footnotes li:target,
+.markdown-preview-view blockquote:target,
+.markdown-preview-view [id^='^']:target {
+  animation: h2-match-flash var(--h2-duration-slow) var(--h2-ease);
 }
 
 

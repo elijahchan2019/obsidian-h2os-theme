@@ -673,20 +673,35 @@ h5, h6 {
 /* ── 列表 ────────────────────────────────────────────────────
    列表项间距用 token --list-spacing (0.5rem = 8px，4px 网格)。
    单项内换行行距沿用正文行高，不单独设。
+   ────────────────────────────────────────────────────────────
+   ⚠️ 悬挂缩进归 Obsidian 原生，主题不碰容器/行级 padding：
+   · 阅读模式：ul/ol 的 padding-inline-start:0（容器不缩进），
+     缩进由 li 的 margin-inline-start:3ch 承担——换行第二行是
+     li 的内容，自然对齐到文字左缘。
+   · Live Preview：.cm-line 默认 padding:0，列表缩进由首行的
+     .cm-formatting-list-ul formatting span（--list-padding-inline-start）
+     承担——只缩进首行，换行第二行回到内容左缘。
+   早期版本曾在 ul/ol 容器 + .HyperMD-list-line 整行块上挂
+   padding-inline-start:1.5rem，作用在整行/整个容器会让换行第二行
+   继承这层 padding 多缩进一截（长列表项换行错位 bug）。
+   Folio/Opendian 都不碰这层，靠原生机制工作。H2 OS 同路线。
    ──────────────────────────────────────────────────────────── */
-.markdown-preview-view ul,
-.markdown-preview-view ol,
-.markdown-source-view.mod-cm6 .HyperMD-list-line {
-  padding-inline-start: 1.5rem;   /* 24px，4px 网格 */
-}
 
-/* 有序/无序列表项之间的间距 */
+/* 有序/无序列表项之间的间距（阅读模式） */
 .markdown-preview-view li {
   margin-block-start: var(--list-spacing);
   margin-block-end: var(--list-spacing);
 }
 .markdown-preview-view li:first-child { margin-block-start: 0; }
 .markdown-preview-view li:last-child  { margin-block-end: 0; }
+
+/* Live Preview 列表行间距：补齐阅读模式 li 的 --list-spacing 节奏。
+   Obsidian 原生 .cm-line padding:0，LP 列表行若不加间距会与正文段落
+   同密（列表分组节奏消失）。只动 padding-bottom（垂直），不碰
+   padding-inline（水平缩进归原生 formatting span）。Folio 同款手法。 */
+.markdown-source-view.mod-cm6 .cm-line.HyperMD-list-line {
+  padding-bottom: var(--list-spacing) !important;
+}
 
 /* ── 行内代码 ────────────────────────────────────────────────
    方形语义（圆角小，--radius-s = 4px）。轻 tint 背景，不抢正文。

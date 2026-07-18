@@ -178,7 +178,7 @@ body.theme-light {
      （横）+ 设置页左栏右沿（竖）。红 500 半透明压暗，细而不响。
      ⚠️ 红色纪律第 5 例外：构造线级红持续态，限定一横一竖各一条，
      禁止扩散到其他分隔线。 */
-  --h2-line-signature: rgba(209, 74, 74, 0.5);
+  --h2-line-signature: rgba(209, 74, 74, 0.7);
 
   /* ── 映射给 Obsidian 原生变量（Obsidian 内部 CSS 读这些渲染） ── */
 
@@ -1456,6 +1456,17 @@ h5, h6 {
   background: var(--nav-item-background-hover);   /* rgba(0,0,0,0.04) 灰阶（v0.7.3 修正过时注释） */
   border-radius: var(--radius-s);
   transition: var(--h2-transition-color);
+}
+
+/* 文件夹字重加档（v1.2.4）：folder 比 file 重一档建立层级——
+   H2 OS 用字重而非颜色做层级（视觉品味纪律）。
+   - 旧 file tree：.nav-folder-title 是 folder 容器（.nav-file-title 是 file）
+   - 新 mod-tree：.tree-item-self 共用，folder 靠 .mod-collapsible 区分
+     （file 不可折叠、不带此类）
+   asar 实测：app.css 9465 .tree-item-self.mod-collapsible 是 folder 标记。 */
+.nav-folder-title,
+.tree-item-self.mod-collapsible {
+  font-weight: 500;
 }
 
 
@@ -3154,13 +3165,13 @@ body:not(.is-mobile) .app-container {
 
 /* 横线刷入（左→右） */
 @keyframes h2-line-sweep-x {
-  from { background-size: 0% 1px; }
-  to   { background-size: 100% 1px; }
+  from { background-size: 0% 2px; }
+  to   { background-size: 100% 2px; }
 }
 /* 竖线刷入（上→下） */
 @keyframes h2-line-sweep-y {
-  from { background-size: 1px 0%; }
-  to   { background-size: 1px 100%; }
+  from { background-size: 2px 0%; }
+  to   { background-size: 2px 100%; }
 }
 
 /* ── 导航栏下沿签名横线 ──────────────────────────────────────
@@ -3182,7 +3193,7 @@ body:not(.is-mobile) .workspace::after {
   left: 0;
   right: 0;
   top: calc(var(--h2-paper-gap) + var(--header-height));
-  height: 1px;
+  height: 2px;
   background: var(--h2-line-signature);
   pointer-events: none;
   z-index: 10;
@@ -3197,7 +3208,7 @@ body:not(.is-mobile) .workspace::after {
   background-image: linear-gradient(var(--h2-line-signature), var(--h2-line-signature));
   background-repeat: no-repeat;
   background-position: right top;
-  background-size: 1px 100%;
+  background-size: 2px 100%;
   animation: h2-line-sweep-y var(--h2-duration-line) var(--h2-ease-line);
 }
 

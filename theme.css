@@ -3165,13 +3165,13 @@ body:not(.is-mobile) .app-container {
 
 /* 横线刷入（左→右） */
 @keyframes h2-line-sweep-x {
-  from { background-size: 0% 2px; }
-  to   { background-size: 100% 2px; }
+  from { background-size: 0% 1.5px; }
+  to   { background-size: 100% 1.5px; }
 }
 /* 竖线刷入（上→下） */
 @keyframes h2-line-sweep-y {
-  from { background-size: 2px 0%; }
-  to   { background-size: 2px 100%; }
+  from { background-size: 1.5px 0%; }
+  to   { background-size: 1.5px 100%; }
 }
 
 /* ── 导航栏下沿签名横线 ──────────────────────────────────────
@@ -3193,7 +3193,7 @@ body:not(.is-mobile) .workspace::after {
   left: 0;
   right: 0;
   top: calc(var(--h2-paper-gap) + var(--header-height));
-  height: 2px;
+  height: 1.5px;
   background: var(--h2-line-signature);
   pointer-events: none;
   z-index: 10;
@@ -3208,7 +3208,7 @@ body:not(.is-mobile) .workspace::after {
   background-image: linear-gradient(var(--h2-line-signature), var(--h2-line-signature));
   background-repeat: no-repeat;
   background-position: right top;
-  background-size: 2px 100%;
+  background-size: 1.5px 100%;
   animation: h2-line-sweep-y var(--h2-duration-line) var(--h2-ease-line);
 }
 
